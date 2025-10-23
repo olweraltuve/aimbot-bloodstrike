@@ -13,8 +13,8 @@ call venv_cuda\Scripts\activate
 pip uninstall torch torchvision torchaudio -y
 
 echo.
-echo Installing stable PyTorch with CUDA 12.4 support...
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+echo Installing stable PyTorch with CUDA 12.8 support for RTX 5060 (sm_120)...
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 echo.
 echo Installing other dependencies...
@@ -29,19 +29,19 @@ echo ===============================================
 echo IMPORTANT INFORMATION FOR RTX 5060 USERS
 echo ===============================================
 echo.
-echo Your RTX 5060 GPU (sm_120) is not yet supported by stable PyTorch.
+echo Your RTX 5060 GPU (sm_120) is now fully supported by PyTorch 2.7+!
 echo.
-echo The aimbot will run in CPU mode which is slower but functional.
+echo The aimbot will run with full CUDA acceleration on your RTX 5060.
 echo.
-echo For future CUDA support:
-echo - PyTorch nightly builds may eventually support RTX 5060
-echo - Check https://pytorch.org/get-started/locally/ for updates
-echo - The aimbot will automatically detect when CUDA becomes available
+echo For optimal performance:
+echo - Ensure you have NVIDIA driver R570 or newer
+echo - Verify CUDA 12.8 is detected in the verification above
+echo - The aimbot will automatically use GPU acceleration
 echo.
 echo ===============================================
 echo Reinstallation Complete!
 echo ===============================================
 echo.
 echo Run: python lunar.py
-echo The aimbot will automatically use CPU mode for now.
+echo The aimbot will now use GPU acceleration on your RTX 5060!
 pause

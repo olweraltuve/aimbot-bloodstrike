@@ -40,8 +40,8 @@ call venv_cuda\Scripts\activate
 
 echo.
 echo Installing CUDA-enabled PyTorch and dependencies for RTX 5060 (sm_120)...
-echo Using PyTorch nightly build for RTX 5060 (sm_120) compatibility...
-pip install --pre torch torchvision torchaudio --index-url https://download.pytorch.org/whl/nightly/cu124
+echo Using PyTorch stable build with CUDA 12.8 (cu128) for RTX 5060 (sm_120) compatibility...
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 if %errorlevel% neq 0 (
     echo Failed to install PyTorch with CUDA
     pause
