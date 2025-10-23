@@ -4,6 +4,14 @@ import sys
 from pynput import keyboard
 from termcolor import colored
 
+# Import admin check module
+try:
+    from admin_check import check_and_request_admin
+except ImportError:
+    print("[WARNING] Admin check module not found. Running without admin privileges check.")
+    def check_and_request_admin():
+        return False
+
 def on_release(key):
     try:
         if key == keyboard.Key.f1:
@@ -47,15 +55,18 @@ def setup():
 if __name__ == "__main__":
     os.system('cls' if os.name == 'nt' else 'clear')
     os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+    
+    # Check and request admin privileges if needed
+    check_and_request_admin()
 
-    print(colored('''
+    print(colored(r'''
 
-  _    _   _ _   _    _    ____     _     ___ _____ _____ 
+  _    _   _ _   _    _    ____     _     ___ _____ _____
  | |  | | | | \ | |  / \  |  _ \   | |   |_ _|_   _| ____|
- | |  | | | |  \| | / _ \ | |_) |  | |    | |  | | |  _|  
- | |__| |_| | |\  |/ ___ \|  _ <   | |___ | |  | | | |___ 
+ | |  | | | |  \| | / _ \ | |_) |  | |    | |  | | |  _|
+ | |__| |_| | |\  |/ ___ \|  _ <   | |___ | |  | | | |___
  |_____\___/|_| \_/_/   \_\_| \_\  |_____|___| |_| |_____|
-                                                                         
+                                                                          
 (Neural Network Aimbot)''', "green"))
     
     print(colored('To get full version of Lunar V2, visit https://gannonr.com/lunar OR join the discord: discord.gg/aiaimbot', "red"))

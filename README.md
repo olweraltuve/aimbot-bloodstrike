@@ -89,6 +89,51 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 
 ---
 
+### If the aimbot only works when you Alt+Tab (doesn't work in-game):
+
+**⚠️ This is the MOST COMMON issue - the problem is screen capture, not mouse movement.**
+
+**🔧 Solution (Already Implemented):**
+
+The code now uses **BitBlt** by default, which works with fullscreen games. Just verify:
+- Open `lib/config/mouse_config.py`
+- Confirm: `CAPTURE_METHOD = 'bitblt'`
+
+**Alternative Solutions:**
+1. **Change game to BORDERLESS WINDOWED mode** (most reliable)
+   - Go to game settings → Display/Video
+   - Change from "Fullscreen" to "Borderless Windowed"
+
+2. **Use auto-detection mode:**
+   - In `lib/config/mouse_config.py`
+   - Change: `CAPTURE_METHOD = 'auto'`
+
+---
+
+### If the aimbot detects targets but doesn't move the mouse:
+
+**The code now uses DDXoft by default (kernel-level, less detectable).**
+
+**If DDXoft driver doesn't work on your system:**
+
+1. **Verify DDXoft is available:**
+   - Check that `lib/mouse/dd40605x64.dll` exists
+   - If missing, download from the original Lunar repository
+
+2. **Fallback to Win32 if needed:**
+   - Open `lib/config/mouse_config.py`
+   - Change: `MOUSE_METHOD = 'win32'`
+   - **WARNING:** Win32 is more detectable by anti-cheat
+
+3. **Adjust sensitivity if needed:**
+   - Edit `lib/config/config.json`
+   - Lower `targeting_scale` for smoother movement
+   - Higher values = faster/more aggressive
+
+📖 See `SOLUCION_MOUSE_MOVEMENT.md` for detailed troubleshooting guide.
+
+---
+
 ### If the console closes instantly:
 ```
 python lunar.py

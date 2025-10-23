@@ -1,0 +1,14 @@
+# Virtual Environments
+venv/
+venv_cuda/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs/Data (if any)
+*.log

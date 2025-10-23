@@ -1,25 +1,21 @@
 @echo off
-:: Check for permissions
->nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
+echo ===============================================
+echo Lunar AI Aimbot - CUDA Enabled
+echo ===============================================
+echo.
 
-:: If error flag set, we do not have admin.
-if '%errorlevel%' NEQ '0' (
-    echo Requesting administrative privileges...
-    goto UACPrompt
-) else ( goto gotAdmin )
+echo Checking for CUDA virtual environment...
+if not exist "venv_cuda\Scripts\activate.bat" (
+    echo CUDA virtual environment not found!
+    echo Please run setup_cuda.bat first to set up the CUDA environment.
+    echo.
+    pause
+    exit /b 1
+)
 
-:UACPrompt
-    echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs"
-    set params = %*:"=""
-    echo UAC.ShellExecute "cmd.exe", "/c %~s0 %params%", "", "runas", 1 >> "%temp%\getadmin.vbs"
+echo Activating CUDA virtual environment...
+call venv_cuda\Scripts\activate.bat
 
-    "%temp%\getadmin.vbs"
-    del "%temp%\getadmin.vbs"
-    exit /B
-
-:gotAdmin
-    pushd "%CD%"
-    CD /D "%~dp0"
-:: Run
+echo Running Lunar AI Aimbot with CUDA acceleration...
 python lunar.py
-pause >nul
+pause

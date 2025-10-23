@@ -1,11 +1,13 @@
+# CPU-only PyTorch installation (default for Python 3.13+)
+# For CUDA acceleration, use requirements_cuda.txt with Python 3.12
 --find-links https://download.pytorch.org/whl/torch_stable.html
 
-torch==2.1.2
-torchvision==0.16.2
-ultralytics
+torch>=2.6.0
+torchvision>=0.17.0
+ultralytics>=8.0.0
 
 matplotlib>=3.2.2
-numpy==1.26.4
+numpy>=1.26.4
 opencv-python>=4.1.2
 Pillow
 PyYAML>=5.3.1
