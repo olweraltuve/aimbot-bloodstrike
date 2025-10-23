@@ -111,11 +111,11 @@ class Aimbot:
     bitmap = None
     
     # SOLUCIÓN: Parámetros de control de movimiento robusto
-    DEADZONE_RADIUS = 8  # Píxeles - no mover si estamos dentro de este radio
+    DEADZONE_RADIUS = 3  # Píxeles - no mover si estamos dentro de este radio. REDUCIDO para mayor reactividad.
     MAX_MOVE_PER_FRAME = 15  # Píxeles - límite máximo de movimiento por frame
     SMOOTHING_FACTOR = 0.25  # 0.0-1.0 - factor de suavizado (menor = más suave)
     APPROACH_THRESHOLD = 80  # Píxeles - distancia para activar suavizado extra
-    MIN_MOVE_THRESHOLD = 0.3  # Píxeles - no mover si el cálculo da menos que esto
+    MIN_MOVE_THRESHOLD = 0.1  # Píxeles - no mover si el cálculo es muy pequeño, previene micro-jitter.
 
     def __init__(self, box_constant = fov, collect_data = False, mouse_delay = None):
         #controls the initial centered box width and height of the "Lunar Vision" window
@@ -428,16 +428,9 @@ class Aimbot:
         
         # SOLUCIÓN 2: Suavizado adaptativo
         # Mientras más cerca estamos, más lento nos movemos
+        # NOTA: El suavizado adaptativo original era demasiado agresivo y causaba que el mouse no se moviera al apuntar.
+        # Se ha desactivado para un movimiento más consistente. El suavizado normal sigue activo.
         smoothing = Aimbot.SMOOTHING_FACTOR
-        
-        if distance < Aimbot.APPROACH_THRESHOLD:
-            # Aplicar suavizado extra cuando estamos cerca
-            # A 10px: smoothing = 0.25 * (10/80) = 0.031 (MUY suave)
-            # A 40px: smoothing = 0.25 * (40/80) = 0.125 (suave)
-            # A 80px: smoothing = 0.25 * (80/80) = 0.25 (normal)
-            smoothing *= (distance / Aimbot.APPROACH_THRESHOLD)
-            if self.debug_counter % 30 == 0:
-                print(colored(f"[DEBUG] MOVEMENT: Close approach mode. Distance={distance:.1f}px, Smoothing={smoothing:.3f}", "cyan"))
 
         # Determinar qué escala de sensibilidad usar (apuntando o desde la cadera)
         divisor = self.sens_config['targeting_scale'] if Aimbot.is_targeted() else self.sens_config['xy_scale']
@@ -574,7 +567,8 @@ class Aimbot:
                     x2y2 = (x2, y2)
                     height = y2 - y1
                     relative_head_X, relative_head_Y = int((x1 + x2)/2), int((y1 + y2)/2 - height/aim_height) # offset to roughly approximate the head using a ratio of the height
-                    own_player = x1 < 15 or (x1 < self.box_constant/5 and y2 > self.box_constant/1.2) # helps ensure that your own player is not regarded as a valid detection
+                    # Filtro de tercera persona desactivado para compatibilidad con juegos en primera persona.
+                    own_player = False
 
                     crosshair_dist = math.dist((relative_head_X, relative_head_Y), (self.box_constant/2, self.box_constant/2))
 

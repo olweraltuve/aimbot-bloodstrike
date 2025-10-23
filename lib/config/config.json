@@ -1,8 +1,8 @@
 {
     "xy_sens": 5.0,
     "targeting_sens": 1.0,
-    "xy_scale": 5.0,
-    "targeting_scale": 150.0,
+    "xy_scale": 2.0,
+    "targeting_scale": 4.0,
     "_comment_xy_scale": "Valores MÁS BAJOS = movimientos MÁS RÁPIDOS (recomendado: 2.0-10.0)",
-    "_comment_targeting_scale": "Valores MÁS ALTOS = movimientos MÁS LENTOS/PRECISOS (recomendado: 150-300)"
+    "_comment_targeting_scale": "Valores MÁS ALTOS = movimientos MÁS LENTOS/PRECISOS (recomendado: 4.0-20.0, debe ser ligeramente mayor que xy_scale)"
 }

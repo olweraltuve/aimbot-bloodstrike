@@ -34,7 +34,7 @@ TARGETING_SCALE_OVERRIDE = None  # Example: 50.0 for slower, 200.0 for faster
 
 # Zona muerta - radio en píxeles donde NO se mueve el mouse
 # Aumentar si hay "jitter" (temblor) cerca del objetivo
-DEADZONE_RADIUS = 5  # Recomendado: 5-15 (reducido para mejor precisión)
+DEADZONE_RADIUS = 3  # Recomendado: 2-8. REDUCIDO para mayor reactividad al apuntar.
 
 # Velocidad máxima por frame (límite de píxeles por movimiento)
 # Reducir si el mouse se mueve demasiado rápido y se pasa del objetivo
