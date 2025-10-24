@@ -48,9 +48,11 @@ max_shot_delay = 0.15    # Maximum delay between shots (seconds)
 # Try to load config from mouse_config.py (now handles both mouse and capture), fallback to defaults
 try:
     from lib.config.mouse_config import (
-        MOUSE_METHOD, 
+        MOUSE_METHOD,
         MOUSE_DELAY as CONFIG_MOUSE_DELAY,
-        CAPTURE_METHOD as CONFIG_CAPTURE_METHOD
+        CAPTURE_METHOD as CONFIG_CAPTURE_METHOD,
+        HUMANIZATION_INTENSITY,
+        OVERSHOOT_AMOUNT
     )
     mouse_method = MOUSE_METHOD
     config_mouse_delay = CONFIG_MOUSE_DELAY
@@ -60,6 +62,10 @@ except ImportError:
     mouse_method = mouse_methods[1]  # 1 is ddxoft (less detectable). 0 is win32.
     config_mouse_delay = 0.0009
     capture_method = 'bitblt'  # Default to bitblt for fullscreen compatibility
+    HUMANIZATION_INTENSITY = 0.4
+    OVERSHOOT_AMOUNT = 1.5
+    TARGET_STICKINESS_PIXELS = 60
+    LOCK_PERSISTENCE_FRAMES = 10
 
 PUL = ctypes.POINTER(ctypes.c_ulong)
 class KeyBdInput(ctypes.Structure):
@@ -109,13 +115,6 @@ class Aimbot:
     desktop_dc = None
     mem_dc = None
     bitmap = None
-    
-    # SOLUCIÓN: Parámetros de control de movimiento robusto
-    DEADZONE_RADIUS = 3  # Píxeles - no mover si estamos dentro de este radio. REDUCIDO para mayor reactividad.
-    MAX_MOVE_PER_FRAME = 15  # Píxeles - límite máximo de movimiento por frame
-    SMOOTHING_FACTOR = 0.25  # 0.0-1.0 - factor de suavizado (menor = más suave)
-    APPROACH_THRESHOLD = 80  # Píxeles - distancia para activar suavizado extra
-    MIN_MOVE_THRESHOLD = 0.1  # Píxeles - no mover si el cálculo es muy pequeño, previene micro-jitter.
 
     def __init__(self, box_constant = fov, collect_data = False, mouse_delay = None):
         #controls the initial centered box width and height of the "Lunar Vision" window
@@ -128,13 +127,17 @@ class Aimbot:
         self.shot_cooldown = 0.1  # Minimum 100ms between shots to prevent freezing
         self.consecutive_shots = 0
         self.max_consecutive_shots = 3  # Limit burst firing to prevent detection
-        self.debug_counter = 0  # Counter for debug messages
-        
-        # Movement tracking for debugging
-        self.last_move_command = None
-        self.movement_verification_enabled = True
 
         print("[INFO] Loading the neural network model")
+        # Load mouse config safely
+        try:
+            from lib.config.mouse_config import INITIAL_STRAIGHTNESS
+            self.initial_straightness = INITIAL_STRAIGHTNESS
+        except ImportError:
+            self.initial_straightness = 0.2 # Fallback if not found
+            
+        self.debug_counter = 0
+        self.movement_path = []
         self.model = YOLO('lib/best.pt')
         
         # Check CUDA availability and compatibility
@@ -266,13 +269,16 @@ class Aimbot:
         
         print("\n[INFO] PRESIONA 'F1' PARA ACTIVAR/DESACTIVAR AIMBOT\n[INFO] PRESIONA 'F2' PARA SALIR")
 
+    # Ahora se pasa la instancia para poder limpiar la ruta de movimiento fantasma
     def update_status_aimbot():
         if Aimbot.aimbot_status == colored("ENABLED", 'green'):
             Aimbot.aimbot_status = colored("DISABLED", 'red')
+            # SOLUCIÓN MOVIMIENTO FANTASMA: Si hay una instancia activa, limpiar su ruta de movimiento.
+            if 'lunar' in sys.modules['__main__'].__dict__:
+                sys.modules['__main__'].__dict__['lunar'].movement_path.clear()
         else:
             Aimbot.aimbot_status = colored("ENABLED", 'green')
-        sys.stdout.write("\033[K")
-        print(f"[!] AIMBOT ESTÁ [{Aimbot.aimbot_status}]", end = "\r")
+        # La impresión del estado se gestiona ahora de forma limpia dentro del bucle principal
     
     def init_bitblt(self):
         """Initialize BitBlt screen capture (works with fullscreen games)"""
@@ -387,102 +393,136 @@ class Aimbot:
         else:
             return False, f"FALLO: esperado({expected_dx},{expected_dy}) vs real({actual_dx},{actual_dy})"
 
+    def plan_professional_movement(self, target_x, target_y, num_detections):
+        """
+        Generates a human-like mouse movement path using Bézier curves and easing.
+        It will only "overshoot" if there is exactly one target on screen.
+        """
+        try:
+            start_x, start_y = win32api.GetCursorPos()
+        except Exception:
+            start_x, start_y = screen_x, screen_y # Fallback
+
+        dist = math.hypot(target_x - start_x, target_y - start_y)
+        if dist < 2: return # No need to move for tiny adjustments
+
+        # Number of steps proportional to distance for smoother long moves
+        num_steps = max(5, min(25, int(dist / 15)))
+        if num_steps <= 0: return # Avoid division by zero
+
+        # 1. (SOLUCIÓN DEFINITIVA) Usar una curva de Bézier CÚBICA para control total.
+        # P0=start, P1=control1, P2=control2, P3=target
+        vec_x, vec_y = target_x - start_x, target_y - start_y
+
+        # 2. El Control Point 1 se coloca a lo largo de la línea recta hacia el objetivo.
+        # Un valor PEQUEÑO de `initial_straightness` asegura que el vector de salida sea perfecto,
+        # pero permite que la curva comience casi de inmediato.
+        p1_x = start_x + vec_x * self.initial_straightness
+        p1_y = start_y + vec_y * self.initial_straightness
+
+        # 3. El Control Point 2 introduce la curva en la segunda mitad del trayecto.
+        # Se desplaza perpendicularmente a la línea recta.
+        mid_point_x, mid_point_y = (start_x + target_x) / 2, (start_y + target_y) / 2
+        curve_factor = random.uniform(-0.7, 0.7) # Factor de curva centrado para evitar arcos amplios
+        p2_x = mid_point_x - vec_y * (HUMANIZATION_INTENSITY / 1.5) * curve_factor
+        p2_y = mid_point_y + vec_x * (HUMANIZATION_INTENSITY / 1.5) * curve_factor
+
+        # 4. Generar la ruta principal
+        path_points = []
+        did_overshoot = False
+        for i in range(num_steps + 1):
+            t = i / num_steps
+            t_eased = 1 - (1 - t)**3 # Easing para una desaceleración suave
+            
+            # Fórmula de Bézier Cúbica
+            inv_t = 1 - t_eased
+            x = inv_t**3 * start_x + 3 * inv_t**2 * t_eased * p1_x + 3 * inv_t * t_eased**2 * p2_x + t_eased**3 * target_x
+            y = inv_t**3 * start_y + 3 * inv_t**2 * t_eased * p1_y + 3 * inv_t * t_eased**2 * p2_y + t_eased**3 * target_y
+            path_points.append((int(x), int(y)))
+
+        # 5. Overshoot como micro-corrección sutil al final (sin cambios, esta lógica es buena)
+        if num_detections == 1 and random.random() < 0.08 and dist > 50: # Hard-coded a un 8% de probabilidad.
+            did_overshoot = True
+            overshoot_dist = dist * (OVERSHOOT_AMOUNT / 100.0)
+            norm_vec_x, norm_vec_y = vec_x / dist, vec_y / dist
+            overshoot_x = target_x + norm_vec_x * overshoot_dist
+            overshoot_y = target_y + norm_vec_y * overshoot_dist
+            
+            path_points.append((int(overshoot_x), int(overshoot_y)))
+            path_points.append((int(target_x), int(target_y)))
+
+        # 6. Convertir puntos a movimientos relativos (dx, dy)
+        self.movement_path = []
+        prev_x, prev_y = start_x, start_y
+        for x, y in path_points[1:]:
+            dx = x - prev_x
+            dy = y - prev_y
+            if dx != 0 or dy != 0:
+                self.movement_path.append((dx, dy))
+            prev_x, prev_y = x, y
+
+        if self.debug_counter % 30 == 0:
+            overshoot_msg = colored("OVERSHOOT", "yellow") if did_overshoot else ""
+            print(colored(f"[DEBUG] MOVEMENT: Path planned. Steps={len(self.movement_path)}, Dist={dist:.0f}px, StraightnessAnchor={self.initial_straightness} {overshoot_msg}", "magenta"))
+
     def move_crosshair(self, x, y):
         """
-        SOLUCIÓN ROBUSTA AL OVERSHOOTING
-        =================================
-        Sistema de control proporcional con:
-        1. Zona muerta (deadzone) para evitar micro-movimientos
-        2. Límite de velocidad máxima por frame
-        3. Suavizado adaptativo basado en distancia
-        4. Filtro de movimientos mínimos
-        5. Tracking de posición real del cursor
+        Executes the next step in a pre-planned movement path.
+        If no path exists, it does nothing.
         """
-        
-        # SOLUCIÓN CRÍTICA: Obtener posición REAL del cursor
-        # El cursor NO siempre está en el centro después del primer movimiento
-        try:
-            current_x, current_y = win32api.GetCursorPos()
-            if self.debug_counter % 60 == 0:
-                print(colored(f"[DEBUG] CURSOR: Current position=({current_x},{current_y})", "cyan"))
-        except Exception as e:
-            # Si falla GetCursorPos, asumir centro (fallback)
-            current_x, current_y = screen_x, screen_y
-            if self.debug_counter % 120 == 0:
-                print(colored(f"[WARNING] Could not get cursor position: {e}. Using screen center.", "yellow"))
-        
-        # Calcular diferencia desde la posición ACTUAL del cursor al objetivo
-        # NO desde el centro de la pantalla
-        diff_x = x - current_x
-        diff_y = y - current_y
-        
-        # Calcular distancia euclidiana al objetivo
-        distance = math.sqrt(diff_x**2 + diff_y**2)
-        
-        # SOLUCIÓN 1: Zona muerta - si estamos MUY cerca, no mover
-        # Esto evita el "jitter" (temblor) cuando ya estamos en el objetivo
-        if distance < Aimbot.DEADZONE_RADIUS:
-            if self.debug_counter % 60 == 0:
-                print(colored(f"[DEBUG] MOVEMENT: Inside deadzone ({distance:.1f}px < {Aimbot.DEADZONE_RADIUS}px) - SKIP", "yellow"))
+        if not self.movement_path:
             return
-        
-        # SOLUCIÓN 2: Suavizado adaptativo
-        # Mientras más cerca estamos, más lento nos movemos
-        # NOTA: El suavizado adaptativo original era demasiado agresivo y causaba que el mouse no se moviera al apuntar.
-        # Se ha desactivado para un movimiento más consistente. El suavizado normal sigue activo.
-        smoothing = Aimbot.SMOOTHING_FACTOR
 
-        # Determinar qué escala de sensibilidad usar (apuntando o desde la cadera)
+        # Pop the next movement step from the path
+        move_x, move_y = self.movement_path.pop(0)
+
+        # Apply sensitivity scaling
         divisor = self.sens_config['targeting_scale'] if Aimbot.is_targeted() else self.sens_config['xy_scale']
-        
         if divisor == 0:
-            print(colored("[ERROR] MOVEMENT: Divisor is 0! Check config.json", "red"))
+            print(colored("[ERROR] SENSITIVITY DIVISOR IS 0! Check config.json", "red"))
             return
         
-        # Calcular movimiento base con sensibilidad y suavizado
-        move_x = (diff_x / divisor) * smoothing
-        move_y = (diff_y / divisor) * smoothing
-        
-        # SOLUCIÓN 3: Límite de velocidad máxima
-        # Nunca mover más de MAX_MOVE_PER_FRAME píxeles en un solo frame
-        move_magnitude = math.sqrt(move_x**2 + move_y**2)
-        
-        if move_magnitude > Aimbot.MAX_MOVE_PER_FRAME:
-            # Escalar el movimiento para que no exceda el límite
-            scale_factor = Aimbot.MAX_MOVE_PER_FRAME / move_magnitude
-            move_x *= scale_factor
-            move_y *= scale_factor
-            if self.debug_counter % 30 == 0:
-                print(colored(f"[DEBUG] MOVEMENT: Capped at max speed. Original={move_magnitude:.1f}px, Capped={Aimbot.MAX_MOVE_PER_FRAME}px", "yellow"))
-        
-        # SOLUCIÓN 4: Filtro de movimientos insignificantes
-        # Si el movimiento calculado es menor al umbral, ignorarlo
-        if abs(move_x) < Aimbot.MIN_MOVE_THRESHOLD and abs(move_y) < Aimbot.MIN_MOVE_THRESHOLD:
-            if self.debug_counter % 60 == 0:
-                print(colored(f"[DEBUG] MOVEMENT: Movement too small ({move_x:.2f}, {move_y:.2f}) - SKIP", "yellow"))
+        # The path is already smooth, we just scale it for game sensitivity
+        final_move_x = move_x / divisor
+        final_move_y = move_y / divisor
+
+        # Clamp to a minimum of 1 if there's any movement, to ensure it registers
+        if abs(final_move_x) < 1 and final_move_x != 0: final_move_x = 1 if final_move_x > 0 else -1
+        if abs(final_move_y) < 1 and final_move_y != 0: final_move_y = 1 if final_move_y > 0 else -1
+
+        # Prevent movement from being too small to register
+        if final_move_x == 0 and final_move_y == 0:
             return
-        
+
         # Ejecutar el movimiento
         if self.mouse_method.lower() == 'ddxoft':
-            Aimbot.mouse_dll.DD_movR(int(move_x), int(move_y))
+            Aimbot.mouse_dll.DD_movR(int(final_move_x), int(final_move_y))
         elif self.mouse_method.lower() == 'win32':
-            Aimbot.ii_.mi = MouseInput(int(move_x), int(move_y), 0, 0x0001, 0, ctypes.pointer(Aimbot.extra))
+            Aimbot.ii_.mi = MouseInput(int(final_move_x), int(final_move_y), 0, 0x0001, 0, ctypes.pointer(Aimbot.extra))
             command = Input(ctypes.c_ulong(0), Aimbot.ii_)
             ctypes.windll.user32.SendInput(1, ctypes.pointer(command), ctypes.sizeof(command))
         
         # Debug mejorado con más información
         if self.debug_counter % 10 == 0:
-            target_abs = f"Target=({x},{y})"
-            cursor_pos = f"Cursor=({current_x},{current_y})"
-            movement = f"Move=({int(move_x)},{int(move_y)})"
-            print(colored(f"[DEBUG] MOVEMENT: Dist={distance:.1f}px, {target_abs}, {cursor_pos}, {movement}, Smooth={smoothing:.3f}", "green"))
+            movement = f"Move=({int(final_move_x)},{int(final_move_y)})"
+            path_left = f"Path Steps Left={len(self.movement_path)}"
+            print(colored(f"[DEBUG] MOVEMENT: Executing step. {movement}, {path_left}", "green"))
         
         Aimbot.sleep(self.mouse_delay)
-
-
+    
+    def stop(self):
+        """Señaliza al bucle principal que debe detenerse."""
+        print("\n[INFO] F2 PRESIONADO. CERRANDO DE FORMA SEGURA...")
+        self.running = False
+    
     def start(self):
-        print("[INFO] Iniciando captura de pantalla")
-        Aimbot.update_status_aimbot()
+        """
+        Inicia el bucle principal del aimbot.
+        SOLUCIÓN DE CIERRE: Ahora está envuelto en un try/finally para garantizar
+        que la limpieza se ejecute en el hilo principal, evitando errores.
+        """
+        print(f"[INFO] Iniciando captura de pantalla. Estado inicial: {Aimbot.aimbot_status}")
+
         half_screen_width = ctypes.windll.user32.GetSystemMetrics(0)/2
         half_screen_height = ctypes.windll.user32.GetSystemMetrics(1)/2
         detection_box = {'left': int(half_screen_width - self.box_constant//2), #x1 coord (for top-left corner of the box)
@@ -490,178 +530,209 @@ class Aimbot:
                           'width': int(self.box_constant),  #width of the box
                           'height': int(self.box_constant)} #height of the box
 
-        while self.running:
-            start_time = time.perf_counter()
-            frame = None
-            try:
-                with self.screen_lock:
-                    if self.capture_method.lower() == 'bitblt':
-                        frame = self.capture_screen_bitblt(detection_box)
-                    elif self.capture_method.lower() == 'mss':
-                        initial_frame = Aimbot.screen.grab(detection_box)
-                        frame = np.array(initial_frame, dtype=np.uint8)
-                    elif self.capture_method.lower() == 'auto':
-                        frame = self.capture_screen_bitblt(detection_box)
-                        if frame is None or frame.size == 0:
+        try:
+            while self.running:
+                start_time = time.perf_counter()
+                frame = None
+                try:
+                    with self.screen_lock:
+                        if self.capture_method.lower() == 'bitblt':
+                            frame = self.capture_screen_bitblt(detection_box)
+                        elif self.capture_method.lower() == 'mss':
                             initial_frame = Aimbot.screen.grab(detection_box)
                             frame = np.array(initial_frame, dtype=np.uint8)
-                
-                if self.debug_counter % 30 == 0: # Print debug info every 30 frames
-                    if frame is not None and frame.size > 0:
-                        # Check if frame is mostly black, which indicates a capture issue
-                        is_black = "Yes" if np.mean(frame) < 10 else "No"
-                        print(colored(f"[DEBUG] CAPTURE: Method='{self.capture_method}', Shape={frame.shape}, All Black?={is_black}", "cyan"))
+                        elif self.capture_method.lower() == 'auto':
+                            frame = self.capture_screen_bitblt(detection_box)
+                            if frame is None or frame.size == 0:
+                                initial_frame = Aimbot.screen.grab(detection_box)
+                                frame = np.array(initial_frame, dtype=np.uint8)
+                    
+                    if self.debug_counter % 30 == 0: # Print debug info every 30 frames
+                        if frame is not None and frame.size > 0:
+                            # Check if frame is mostly black, which indicates a capture issue
+                            is_black = "Yes" if np.mean(frame) < 10 else "No"
+                            print(colored(f"[DEBUG] CAPTURE: Method='{self.capture_method}', Shape={frame.shape}, All Black?={is_black}", "cyan"))
+                        else:
+                            print(colored(f"[DEBUG] CAPTURE: Frame capture FAILED via '{self.capture_method}'.", "red"))
+                    
+                    if frame is None or frame.size == 0:
+                        self.failed_captures += 1
+                        if self.failed_captures % 30 == 0:
+                            print(f"[WARNING] La captura de pantalla devolvió un frame vacío ({self.failed_captures} fallos)")
+                            print("[INFO] Asegúrate que el juego está en modo VENTANA SIN BORDES o prueba otro método de captura.")
+                        continue
                     else:
-                        print(colored(f"[DEBUG] CAPTURE: Frame capture FAILED via '{self.capture_method}'.", "red"))
-                
-                if frame is None or frame.size == 0:
+                        if self.failed_captures > 0:
+                            self.failed_captures = 0
+                    
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+                except Exception as e:
                     self.failed_captures += 1
                     if self.failed_captures % 30 == 0:
-                        print(f"[WARNING] La captura de pantalla devolvió un frame vacío ({self.failed_captures} fallos)")
-                        print("[INFO] Asegúrate que el juego está en modo VENTANA SIN BORDES o prueba otro método de captura.")
+                        print(f"[ERROR] La captura de pantalla falló: {e}")
+                        print(f"[INFO] Fallos de captura: {self.failed_captures}")
+                    time.sleep(0.1)
                     continue
-                else:
-                    if self.failed_captures > 0:
-                        self.failed_captures = 0
                 
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-            except Exception as e:
-                self.failed_captures += 1
-                if self.failed_captures % 30 == 0:
-                    print(f"[ERROR] La captura de pantalla falló: {e}")
-                    print(f"[INFO] Fallos de captura: {self.failed_captures}")
-                time.sleep(0.1)
-                continue
-            
-            try:
-                use_half = (self.device == 'cuda' and self.cuda_compatible)
-                boxes = self.model.predict(source=frame, verbose=False, conf=self.conf, iou=self.iou,
-                                         half=use_half, device=self.device)
-                result = boxes[0]
-                
-                if self.debug_counter % 30 == 0:
-                    box_count = len(result.boxes)
-                    color = "green" if box_count > 0 else "yellow"
-                    print(colored(f"[DEBUG] PREDICT: Found {box_count} potential targets.", color))
-            except Exception as e:
-                print(f"[WARNING] La predicción de YOLO falló: {e}")
-                if self.device == 'cuda':
-                    print("[INFO] La predicción con CUDA falló, cambiando a CPU.")
-                    try:
-                        boxes = self.model.predict(source=frame, verbose=False, conf=self.conf, iou=self.iou,
-                                                 half=False, device='cpu')
-                        result = boxes[0]
-                        self.device = 'cpu'
-                        self.cuda_compatible = False
-                        print(colored("[INFO] Se ha cambiado a modo CPU con éxito.", "yellow"))
-                    except Exception as e2:
-                        print(f"[ERROR] La predicción con CPU también falló: {e2}")
-                        continue
-                else:
-                    continue
-            if len(result.boxes.xyxy) != 0: #player detected
-                least_crosshair_dist = closest_detection = player_in_frame = False
-                for box in result.boxes.xyxy: #iterate over each player detected
-                    x1, y1, x2, y2 = map(int, box)
-                    x1y1 = (x1, y1)
-                    x2y2 = (x2, y2)
-                    height = y2 - y1
-                    relative_head_X, relative_head_Y = int((x1 + x2)/2), int((y1 + y2)/2 - height/aim_height) # offset to roughly approximate the head using a ratio of the height
-                    # Filtro de tercera persona desactivado para compatibilidad con juegos en primera persona.
-                    own_player = False
-
-                    crosshair_dist = math.dist((relative_head_X, relative_head_Y), (self.box_constant/2, self.box_constant/2))
-
-                    if not least_crosshair_dist: least_crosshair_dist = crosshair_dist
-
-                    if crosshair_dist <= least_crosshair_dist and not own_player:
-                        least_crosshair_dist = crosshair_dist
-                        closest_detection = {"x1y1": x1y1, "x2y2": x2y2, "relative_head_X": relative_head_X, "relative_head_Y": relative_head_Y}
-
-                    if own_player:
-                        own_player = False
-                        if not player_in_frame:
-                            player_in_frame = True
-
-                if closest_detection: #if valid detection exists
-                    cv2.circle(frame, (closest_detection["relative_head_X"], closest_detection["relative_head_Y"]), 5, (115, 244, 113), -1) #draw circle on the head
-                    cv2.line(frame, (closest_detection["relative_head_X"], closest_detection["relative_head_Y"]), (self.box_constant//2, self.box_constant//2), (244, 242, 113), 2)
-
-                    absolute_head_X, absolute_head_Y = closest_detection["relative_head_X"] + detection_box['left'], closest_detection["relative_head_Y"] + detection_box['top']
-                    x1, y1 = closest_detection["x1y1"]
-
-                    rel_x, rel_y = closest_detection['relative_head_X'], closest_detection['relative_head_Y']
-                    dist = least_crosshair_dist
-                    abs_coords_str = f"Abs Coords=({absolute_head_X},{absolute_head_Y})"
-                    rel_coords_str = f"Rel Coords=({rel_x},{rel_y})"
+                try:
+                    use_half = (self.device == 'cuda' and self.cuda_compatible)
+                    boxes = self.model.predict(source=frame, verbose=False, conf=self.conf, iou=self.iou,
+                                             half=use_half, device=self.device)
+                    result = boxes[0]
                     
-                    # Debug con información adicional del cursor
-                    if self.debug_counter % 10 == 0:
+                    if self.debug_counter % 30 == 0:
+                        box_count = len(result.boxes)
+                        color = "green" if box_count > 0 else "yellow"
+                        # SOLUCIÓN: Mostrar el estado del aimbot de forma estática junto con los logs de depuración
+                        print(f"[INFO] AIMBOT STATUS: {Aimbot.aimbot_status}")
+                        print(colored(f"[DEBUG] PREDICT: Found {box_count} potential targets.", color))
+                except Exception as e:
+                    print(f"[WARNING] La predicción de YOLO falló: {e}")
+                    if self.device == 'cuda':
+                        print("[INFO] La predicción con CUDA falló, cambiando a CPU.")
                         try:
-                            cur_x, cur_y = win32api.GetCursorPos()
-                            cursor_info = f"Cursor=({cur_x},{cur_y})"
-                            print(colored(f"[DEBUG] TARGET: Dist={dist:.1f}. {rel_coords_str}. {abs_coords_str}. {cursor_info}", "green"))
-                        except:
-                            print(colored(f"[DEBUG] TARGET: Dist={dist:.1f}. {rel_coords_str}. {abs_coords_str}", "green"))
-
-                    if Aimbot.is_target_locked(absolute_head_X, absolute_head_Y):
-                        current_time = time.perf_counter()
-                        
-                        if use_trigger_bot and not Aimbot.is_shooting() and (current_time - self.last_shot_time) > self.shot_cooldown:
-                            if self.consecutive_shots < self.max_consecutive_shots:
-                                self.left_click()
-                                self.last_shot_time = current_time
-                                self.consecutive_shots += 1
-                                
-                                if human_like_delay:
-                                    self.shot_cooldown = random.uniform(min_shot_delay, max_shot_delay)
-                                else:
-                                    self.shot_cooldown = 0.1
-                            else:
-                                self.consecutive_shots = 0
-                                self.shot_cooldown = random.uniform(0.2, 0.4)
-
-                        cv2.putText(frame, "LOCKED", (x1 + 40, y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (115, 244, 113), 2)
+                            boxes = self.model.predict(source=frame, verbose=False, conf=self.conf, iou=self.iou,
+                                                     half=False, device='cpu')
+                            result = boxes[0]
+                            self.device = 'cpu'
+                            self.cuda_compatible = False
+                            print(colored("[INFO] Se ha cambiado a modo CPU con éxito.", "yellow"))
+                        except Exception as e2:
+                            print(f"[ERROR] La predicción con CPU también falló: {e2}")
+                            continue
                     else:
-                        cv2.putText(frame, "TARGETING", (x1 + 40, y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (115, 113, 244), 2)
+                        continue
+                if len(result.boxes.xyxy) != 0: #player detected
+                    detections = []
+                    for box in result.boxes.xyxy: #iterate over each player detected
+                        x1, y1, x2, y2 = map(int, box)
+                        height = y2 - y1
+                        relative_head_X, relative_head_Y = int((x1 + x2)/2), int((y1 + y2)/2 - height/aim_height) # offset to roughly approximate the head using a ratio of the height
+                        
+                        crosshair_dist = math.dist((relative_head_X, relative_head_Y), (self.box_constant/2, self.box_constant/2))
+                        
+                        detections.append({
+                            "box": (x1, y1, x2, y2),
+                            "center_x": (x1 + x2) / 2,
+                            "center_y": (y1 + y2) / 2,
+                            "relative_head_X": relative_head_X,
+                            "relative_head_Y": relative_head_Y,
+                            "crosshair_dist": crosshair_dist
+                        })
 
-                    if Aimbot.is_aimbot_enabled():
-                        self.move_crosshair(absolute_head_X, absolute_head_Y)
-                elif self.debug_counter % 30 == 0 and len(result.boxes) > 0:
-                    # This case happens if detections are found but filtered out (e.g., as own player)
-                    print(colored(f"[DEBUG] TARGET: Detections found, but none were valid targets after filtering.", "yellow"))
+                    # --- TARGET LOCKING LOGIC ---
+                    best_target = self.get_best_target(detections)
 
-            fps = int(1/(time.perf_counter() - start_time)) if (time.perf_counter() - start_time) > 0 else 0
-            cv2.putText(frame, f"FPS: {fps}", (5, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (113, 116, 244), 2)
-            
-            try:
-                cv2.imshow("Screen Capture", frame)
-                if cv2.waitKey(1) & 0xFF == ord('0'):
-                    break
-            except Exception as e:
-                print(f"[WARNING] Error de display OpenCV: {e}")
-            
-            # Increment debug counter at the end of each frame cycle
-            self.debug_counter = (self.debug_counter + 1) % 6000
+                    if best_target:
+                        closest_detection = best_target # Use the locked or new best target
+                        cv2.circle(frame, (closest_detection["relative_head_X"], closest_detection["relative_head_Y"]), 5, (115, 244, 113), -1) #draw circle on the head
+                        cv2.line(frame, (closest_detection["relative_head_X"], closest_detection["relative_head_Y"]), (self.box_constant//2, self.box_constant//2), (244, 242, 113), 2)
 
-            elapsed_time = time.perf_counter() - start_time
-            if elapsed_time < 0.016:
-                time.sleep(0.016 - elapsed_time)
+                        absolute_head_X, absolute_head_Y = closest_detection["relative_head_X"] + detection_box['left'], closest_detection["relative_head_Y"] + detection_box['top']
+                        x1, y1 = closest_detection["box"][:2]
 
-    def clean_up():
-        print("\n[INFO] F2 PRESIONADO. CERRANDO...")
+                        rel_x, rel_y = closest_detection['relative_head_X'], closest_detection['relative_head_Y']
+                        dist = closest_detection["crosshair_dist"]
+                        abs_coords_str = f"Abs Coords=({absolute_head_X},{absolute_head_Y})"
+                        rel_coords_str = f"Rel Coords=({rel_x},{rel_y})"
+                        
+                        # Debug con información adicional del cursor
+                        if self.debug_counter % 10 == 0:
+                            try:
+                                cur_x, cur_y = win32api.GetCursorPos()
+                                cursor_info = f"Cursor=({cur_x},{cur_y})"
+                                print(colored(f"[DEBUG] TARGET: Dist={dist:.1f}. {rel_coords_str}. {abs_coords_str}. {cursor_info}", "green"))
+                            except:
+                                print(colored(f"[DEBUG] TARGET: Dist={dist:.1f}. {rel_coords_str}. {abs_coords_str}", "green"))
+                        
+                        is_locked_on_target = Aimbot.is_target_locked(absolute_head_X, absolute_head_Y)
+
+                        # Plan a new movement path if we have a target and no active path
+                        if Aimbot.is_aimbot_enabled() and not self.movement_path and not is_locked_on_target:
+                            self.plan_professional_movement(absolute_head_X, absolute_head_Y, len(detections))
+
+                        if is_locked_on_target:
+                            current_time = time.perf_counter()
+                            
+                            if use_trigger_bot and not Aimbot.is_shooting() and (current_time - self.last_shot_time) > self.shot_cooldown:
+                                if self.consecutive_shots < self.max_consecutive_shots:
+                                    self.left_click()
+                                    self.last_shot_time = current_time
+                                    self.consecutive_shots += 1
+                                    
+                                    if human_like_delay:
+                                        self.shot_cooldown = random.uniform(min_shot_delay, max_shot_delay)
+                                    else:
+                                        self.shot_cooldown = 0.1
+                                else:
+                                    self.consecutive_shots = 0
+                                    self.shot_cooldown = random.uniform(0.2, 0.4)
+
+                            cv2.putText(frame, "LOCKED", (x1 + 40, y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (115, 244, 113), 2)
+                        else:
+                            cv2.putText(frame, "TARGETING", (x1 + 40, y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (115, 113, 244), 2)
+
+                        if Aimbot.is_aimbot_enabled():
+                            self.move_crosshair(absolute_head_X, absolute_head_Y)
+                    else: # No valid targets found this frame
+                        pass # No target lock, so nothing to do if no targets are found
+
+                fps = int(1/(time.perf_counter() - start_time)) if (time.perf_counter() - start_time) > 0 else 0
+                cv2.putText(frame, f"FPS: {fps}", (5, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (113, 116, 244), 2)
+                
+                try:
+                    cv2.imshow("Screen Capture", frame) # Título de ventana estático
+                    if cv2.waitKey(1) & 0xFF == ord('0'):
+                        break
+                except Exception as e:
+                    print(f"[WARNING] Error de display OpenCV: {e}")
+                
+                # Increment debug counter at the end of each frame cycle
+                self.debug_counter = (self.debug_counter + 1) % 6000
+
+                elapsed_time = time.perf_counter() - start_time
+                if elapsed_time < 0.016:
+                    time.sleep(0.016 - elapsed_time)
+        finally:
+            # Esta sección se ejecuta siempre al salir del bucle, ya sea de forma normal o por error
+            self.clean_up()
+
+    def get_best_target(self, detections):
+        """
+        Finds the single best target based on proximity to the crosshair.
+        This version has NO target locking or memory.
+        """
+        if not detections:
+            return None
+
+        # Always choose the target closest to the crosshair.
+        detections.sort(key=lambda d: d["crosshair_dist"])
+        closest_target = detections[0]
+        if self.debug_counter % 30 == 0: print(colored(f"[DEBUG] TARGET: Found closest target. Dist={closest_target['crosshair_dist']:.1f}px", "yellow"))
+        return closest_target
+
+
+    def clean_up(self):
+        """Libera todos los recursos de forma segura. Se llama desde el hilo principal."""
+        print("[INFO] Realizando limpieza de recursos...")
         try:
-            if 'lunar' in globals():
-                lunar.running = False
             Aimbot.screen.close()
             if Aimbot.mem_dc is not None:
                 Aimbot.mem_dc.DeleteDC()
             if Aimbot.desktop_dc is not None:
                 win32gui.ReleaseDC(win32gui.GetDesktopWindow(), Aimbot.desktop_dc)
             cv2.destroyAllWindows()
+            print("[INFO] Limpieza completada.")
         except Exception as e:
-            print(f"[WARNING] Error en la limpieza: {e}")
+            print(f"[WARNING] Error durante la limpieza: {e}")
         finally:
-            os._exit(0)
+            os._exit(0) # Salida final y definitiva del programa
+
+    # La función estática original clean_up() se elimina porque ahora es un método de instancia
+    # y se llama desde el flujo principal del programa para evitar problemas de concurrencia.
+    @staticmethod
+    def clean_up_static_removed():
+        # Esta función ya no se usa.
+        pass
 
 if __name__ == "__main__": print("Estás en el directorio incorrecto y ejecutando el archivo equivocado; debes ejecutar lunar.py")

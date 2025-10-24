@@ -17,7 +17,7 @@ def on_release(key):
         if key == keyboard.Key.f1:
             Aimbot.update_status_aimbot()
         if key == keyboard.Key.f2:
-            Aimbot.clean_up()
+            lunar.stop() # Señaliza al thread principal para que se cierre de forma segura
     except NameError:
         pass
 
