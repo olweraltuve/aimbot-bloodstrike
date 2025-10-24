@@ -1,3 +1,36 @@
 MANDATORY RULE: WHENEVER AN INSTALLATION OR EXECUTION SCRIPT IS GOING TO BE MODIFIED, IT MUST BE SET TO RUN WITH "VENV_CUDA"
 
 MANDATORY RULE: ALL CLINERULES MUST BE FOLLOWED WITHOUT EXCEPTION.
+
+MANDATORY RULE: PYTHON FILES MUST USE THE NEW MODULAR ARCHITECTURE:
+- Use lib/core/ for engine components
+- Use lib/capture/ for screen capture
+- Use lib/input/ for mouse/keyboard
+- Use lib/config/ for configuration
+- Use lib/utils/ for utilities
+
+MANDATORY RULE: ALWAYS USE THE LOGGER:
+- from lib.utils.logger import logger
+- logger.info(message, category)
+- logger.error(message, category)
+- NO usar print() directly except in the banner
+
+MANDATORY RULE: CONFIGURATION MUST USE config_manager:
+- from lib.config.config_manager import config
+- config.get_value('section', 'key')
+- config.set_value('section', 'key', value=X)
+
+MANDATORY RULE: ALL PATHS MUST BE CONSTRUCTED WITH Path() OR os.path.join():
+- from pathlib import Path
+- path = Path("lib/config") / "file.json"
+- O: path = os.path.join(script_dir, "file.json")
+
+MANDATORY RULE: ERROR HANDLING:
+- Siempre usar try/except en operaciones críticas
+- Lograr errores con logger.error()
+- Proporcionar mensajes claros al usuario
+
+MANDATORY RULE: PERFORMANCE:
+- Usar threading.Lock() para operaciones thread-unsafe
+- Limitar FPS para evitar uso excesivo de CPU
+- Monitorear rendimiento con PerformanceMonitor

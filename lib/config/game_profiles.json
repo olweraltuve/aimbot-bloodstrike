@@ -1,0 +1,166 @@
+{
+  "default": {
+    "name": "Default Profile",
+    "description": "Perfil genérico para cualquier juego",
+    "detection": {
+      "fov": 350,
+      "confidence": 0.45,
+      "iou": 0.45,
+      "aim_height_divisor": 5
+    },
+    "movement": {
+      "smoothing": 0.7,
+      "deadzone_pixels": 2,
+      "max_move_speed": 100,
+      "acceleration_factor": 0.8,
+      "mouse_delay": 0.0009
+    },
+    "targeting": {
+      "lock_threshold_pixels": 15,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 60,
+      "persistence_frames": 10
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.08,
+      "max_shot_delay": 0.15,
+      "burst_limit": 3,
+      "burst_cooldown": 0.3
+    }
+  },
+  
+  "fortnite": {
+    "name": "Fortnite",
+    "description": "Optimizado para Fortnite",
+    "detection": {
+      "fov": 400,
+      "confidence": 0.5,
+      "iou": 0.5,
+      "aim_height_divisor": 4
+    },
+    "movement": {
+      "smoothing": 0.6,
+      "deadzone_pixels": 3,
+      "max_move_speed": 120,
+      "acceleration_factor": 0.9,
+      "mouse_delay": 0.001
+    },
+    "targeting": {
+      "lock_threshold_pixels": 12,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 80,
+      "persistence_frames": 15
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.1,
+      "max_shot_delay": 0.18,
+      "burst_limit": 5,
+      "burst_cooldown": 0.4
+    }
+  },
+  
+  "valorant": {
+    "name": "Valorant",
+    "description": "Optimizado para Valorant - Precisión extrema",
+    "detection": {
+      "fov": 300,
+      "confidence": 0.55,
+      "iou": 0.5,
+      "aim_height_divisor": 3
+    },
+    "movement": {
+      "smoothing": 0.4,
+      "deadzone_pixels": 1,
+      "max_move_speed": 80,
+      "acceleration_factor": 0.6,
+      "mouse_delay": 0.0005
+    },
+    "targeting": {
+      "lock_threshold_pixels": 8,
+      "target_priority": "head_closest",
+      "sticky_target": false,
+      "stickiness_pixels": 40,
+      "persistence_frames": 5
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.12,
+      "max_shot_delay": 0.2,
+      "burst_limit": 1,
+      "burst_cooldown": 0.5
+    }
+  },
+  
+  "apex_legends": {
+    "name": "Apex Legends",
+    "description": "Optimizado para Apex Legends - Movimiento rápido",
+    "detection": {
+      "fov": 450,
+      "confidence": 0.48,
+      "iou": 0.45,
+      "aim_height_divisor": 5
+    },
+    "movement": {
+      "smoothing": 0.8,
+      "deadzone_pixels": 4,
+      "max_move_speed": 150,
+      "acceleration_factor": 1.0,
+      "mouse_delay": 0.0012
+    },
+    "targeting": {
+      "lock_threshold_pixels": 20,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 100,
+      "persistence_frames": 20
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.06,
+      "max_shot_delay": 0.12,
+      "burst_limit": 10,
+      "burst_cooldown": 0.3
+    }
+  },
+  
+  "custom": {
+    "name": "Custom Profile",
+    "description": "Perfil personalizable - Ajusta según tu juego",
+    "detection": {
+      "fov": 350,
+      "confidence": 0.45,
+      "iou": 0.45,
+      "aim_height_divisor": 5
+    },
+    "movement": {
+      "smoothing": 0.7,
+      "deadzone_pixels": 2,
+      "max_move_speed": 100,
+      "acceleration_factor": 0.8,
+      "mouse_delay": 0.0009
+    },
+    "targeting": {
+      "lock_threshold_pixels": 15,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 60,
+      "persistence_frames": 10
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.08,
+      "max_shot_delay": 0.15,
+      "burst_limit": 3,
+      "burst_cooldown": 0.3
+    }
+  }
+}

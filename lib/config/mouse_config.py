@@ -29,23 +29,27 @@ MOUSE_DELAY = 0.0009  # Delay between mouse movements (seconds)
 TARGETING_SCALE_OVERRIDE = None  # Example: 50.0 for slower, 200.0 for faster
 
 # ============================================================================
-# PRO-PLAYER MOVEMENT & TARGETING
+# MOUSE SMOOTHING & SPEED
 # ============================================================================
-# Estos ajustes controlan la "humanización" del movimiento y la lógica de fijación de objetivos.
+# SOLUCIÓN: Este es el factor de suavizado que controla qué fracción del error
+# se corrige en cada frame.
+#
+# Valores recomendados:
+#   0.15-0.25 : Muy suave, para snipers o precisión extrema
+#   0.25-0.35 : Equilibrado, recomendado para la mayoría de situaciones
+#   0.35-0.50 : Rápido, para tracking agresivo
+#   0.50+     : Muy rápido, puede causar overshoot
+MOUSE_SMOOTHING = 0.30  # Valor por defecto balanceado
 
-# (SOLUCIÓN) ANCLAJE DEL VECTOR INICIAL
-# Controla la rectitud del INICIO del movimiento. Un valor bajo ("minúsculo")
-# asegura que el movimiento COMIENCE en la dirección perfecta, pero permite que la
-# curva se forme casi de inmediato de manera sutil.
-# 0.0 = La curva puede empezar desviada. 0.2 = Inicio perfecto, curva suave (RECOMENDADO). 1.0 = Línea recta.
-INITIAL_STRAIGHTNESS = 0.4  # Rango recomendado: 0.2 - 0.5 (Más alto = más directo)
-
-# Intensidad de la curva. Controla qué tan pronunciado es el arco del movimiento.
-HUMANIZATION_INTENSITY = 0.15  # Rango recomendado: 0.1 (casi recto) - 0.4 (curva notable)
-
-# Cantidad del "overshoot" (micro-corrección). Ocurre muy raramente (8% de probabilidad).
-# Este valor es un % de la distancia total. 1.0 = se pasa un 1% de la distancia.
-OVERSHOOT_AMOUNT = 0.1  # Rango recomendado: 0.1 (deshabilitado) - 2.0
+# ============================================================================
+# TARGETING DEAD ZONE (NUEVO)
+# ============================================================================
+# SOLUCIÓN: Dead-zone aplicada al error AL CENTRO, no al cursor.
+# Si el objetivo está a menos de X píxeles del centro, no mover.
+# Esto previene vibración cuando ya estamos casi apuntando correctamente.
+#
+# Valores recomendados: 3-5 píxeles
+TARGETING_DEADZONE_PIXELS = 4  # Aumentado de 2 a 4 para reducir vibración
 
 # ============================================================================
 # SCREEN CAPTURE CONFIGURATION

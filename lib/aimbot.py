@@ -8,7 +8,6 @@ import random
 import sys
 import time
 import torch
-import win32api  # For GetCursorPos verification
 import numpy as np
 import win32api
 import win32con
@@ -32,7 +31,7 @@ screen_res_y = screensize['Y']
 screen_x = int(screen_res_x / 2)
 screen_y = int(screen_res_y / 2)
 
-aim_height = 10 # The lower the number, the higher the aim_height. For example: 2 would be the head and 100 would be the feet.
+aim_height = 5 # The lower the number, the higher the aim_height. For example: 2 would be the head and 100 would be the feet.
 
 fov = 350
 
@@ -47,13 +46,11 @@ max_shot_delay = 0.15    # Maximum delay between shots (seconds)
 
 # Try to load config from mouse_config.py (now handles both mouse and capture), fallback to defaults
 try:
-    from lib.config.mouse_config import (
-        MOUSE_METHOD,
-        MOUSE_DELAY as CONFIG_MOUSE_DELAY,
-        CAPTURE_METHOD as CONFIG_CAPTURE_METHOD,
-        HUMANIZATION_INTENSITY,
-        OVERSHOOT_AMOUNT
-    )
+    from lib.config.mouse_config import MOUSE_METHOD
+    from lib.config.mouse_config import MOUSE_DELAY as CONFIG_MOUSE_DELAY
+    from lib.config.mouse_config import CAPTURE_METHOD as CONFIG_CAPTURE_METHOD
+    from lib.config.mouse_config import MOUSE_SMOOTHING
+    from lib.config.mouse_config import TARGETING_DEADZONE_PIXELS
     mouse_method = MOUSE_METHOD
     config_mouse_delay = CONFIG_MOUSE_DELAY
     capture_method = CONFIG_CAPTURE_METHOD
@@ -62,8 +59,8 @@ except ImportError:
     mouse_method = mouse_methods[1]  # 1 is ddxoft (less detectable). 0 is win32.
     config_mouse_delay = 0.0009
     capture_method = 'bitblt'  # Default to bitblt for fullscreen compatibility
-    HUMANIZATION_INTENSITY = 0.4
-    OVERSHOOT_AMOUNT = 1.5
+    MOUSE_SMOOTHING = 0.2 # Default smoothing factor if not in config
+    TARGETING_DEADZONE_PIXELS = 3 # Default deadzone if not in config
     TARGET_STICKINESS_PIXELS = 60
     LOCK_PERSISTENCE_FRAMES = 10
 
@@ -129,12 +126,6 @@ class Aimbot:
         self.max_consecutive_shots = 3  # Limit burst firing to prevent detection
 
         print("[INFO] Loading the neural network model")
-        # Load mouse config safely
-        try:
-            from lib.config.mouse_config import INITIAL_STRAIGHTNESS
-            self.initial_straightness = INITIAL_STRAIGHTNESS
-        except ImportError:
-            self.initial_straightness = 0.2 # Fallback if not found
             
         self.debug_counter = 0
         self.movement_path = []
@@ -393,82 +384,60 @@ class Aimbot:
         else:
             return False, f"FALLO: esperado({expected_dx},{expected_dy}) vs real({actual_dx},{actual_dy})"
 
-    def plan_professional_movement(self, target_x, target_y, num_detections):
+    def plan_smooth_movement(self, target_x, target_y):
         """
-        Generates a human-like mouse movement path using Bézier curves and easing.
-        It will only "overshoot" if there is exactly one target on screen.
+        SOLUCIÓN CORREGIDA: Ahora calcula el movimiento respecto al CENTRO DE PANTALLA,
+        no respecto al cursor. Esto es crítico para juegos con pointer-lock.
+        
+        Args:
+            target_x: Coordenada X absoluta del objetivo en pantalla
+            target_y: Coordenada Y absoluta del objetivo en pantalla
         """
-        try:
-            start_x, start_y = win32api.GetCursorPos()
-        except Exception:
-            start_x, start_y = screen_x, screen_y # Fallback
+        # SOLUCIÓN CLAVE: Calcular error respecto al CENTRO de la pantalla
+        # NO respecto al cursor (GetCursorPos)
+        error_x = target_x - screen_x
+        error_y = target_y - screen_y
+        dist = math.hypot(error_x, error_y)
+        
+        # Telemetría para debugging
+        if self.debug_counter % 10 == 0:
+            print(colored(
+                f"[TELEMETRY] ErrCentro=({error_x:.1f},{error_y:.1f}), "
+                f"DistCentro={dist:.1f}px",
+                "cyan"
+            ))
 
-        dist = math.hypot(target_x - start_x, target_y - start_y)
-        if dist < 2: return # No need to move for tiny adjustments
-
-        # Number of steps proportional to distance for smoother long moves
-        num_steps = max(5, min(25, int(dist / 15)))
-        if num_steps <= 0: return # Avoid division by zero
-
-        # 1. (SOLUCIÓN DEFINITIVA) Usar una curva de Bézier CÚBICA para control total.
-        # P0=start, P1=control1, P2=control2, P3=target
-        vec_x, vec_y = target_x - start_x, target_y - start_y
-
-        # 2. El Control Point 1 se coloca a lo largo de la línea recta hacia el objetivo.
-        # Un valor PEQUEÑO de `initial_straightness` asegura que el vector de salida sea perfecto,
-        # pero permite que la curva comience casi de inmediato.
-        p1_x = start_x + vec_x * self.initial_straightness
-        p1_y = start_y + vec_y * self.initial_straightness
-
-        # 3. El Control Point 2 introduce la curva en la segunda mitad del trayecto.
-        # Se desplaza perpendicularmente a la línea recta.
-        mid_point_x, mid_point_y = (start_x + target_x) / 2, (start_y + target_y) / 2
-        curve_factor = random.uniform(-0.7, 0.7) # Factor de curva centrado para evitar arcos amplios
-        p2_x = mid_point_x - vec_y * (HUMANIZATION_INTENSITY / 1.5) * curve_factor
-        p2_y = mid_point_y + vec_x * (HUMANIZATION_INTENSITY / 1.5) * curve_factor
-
-        # 4. Generar la ruta principal
-        path_points = []
-        did_overshoot = False
-        for i in range(num_steps + 1):
-            t = i / num_steps
-            t_eased = 1 - (1 - t)**3 # Easing para una desaceleración suave
-            
-            # Fórmula de Bézier Cúbica
-            inv_t = 1 - t_eased
-            x = inv_t**3 * start_x + 3 * inv_t**2 * t_eased * p1_x + 3 * inv_t * t_eased**2 * p2_x + t_eased**3 * target_x
-            y = inv_t**3 * start_y + 3 * inv_t**2 * t_eased * p1_y + 3 * inv_t * t_eased**2 * p2_y + t_eased**3 * target_y
-            path_points.append((int(x), int(y)))
-
-        # 5. Overshoot como micro-corrección sutil al final (sin cambios, esta lógica es buena)
-        if num_detections == 1 and random.random() < 0.08 and dist > 50: # Hard-coded a un 8% de probabilidad.
-            did_overshoot = True
-            overshoot_dist = dist * (OVERSHOOT_AMOUNT / 100.0)
-            norm_vec_x, norm_vec_y = vec_x / dist, vec_y / dist
-            overshoot_x = target_x + norm_vec_x * overshoot_dist
-            overshoot_y = target_y + norm_vec_y * overshoot_dist
-            
-            path_points.append((int(overshoot_x), int(overshoot_y)))
-            path_points.append((int(target_x), int(target_y)))
-
-        # 6. Convertir puntos a movimientos relativos (dx, dy)
-        self.movement_path = []
-        prev_x, prev_y = start_x, start_y
-        for x, y in path_points[1:]:
-            dx = x - prev_x
-            dy = y - prev_y
-            if dx != 0 or dy != 0:
-                self.movement_path.append((dx, dy))
-            prev_x, prev_y = x, y
-
-        if self.debug_counter % 30 == 0:
-            overshoot_msg = colored("OVERSHOOT", "yellow") if did_overshoot else ""
-            print(colored(f"[DEBUG] MOVEMENT: Path planned. Steps={len(self.movement_path)}, Dist={dist:.0f}px, StraightnessAnchor={self.initial_straightness} {overshoot_msg}", "magenta"))
+        # SOLUCIÓN 1: Dead-zone aplicada al error AL CENTRO (no al cursor)
+        if dist < TARGETING_DEADZONE_PIXELS:
+            self.movement_path = []
+            if self.debug_counter % 30 == 0:
+                print(colored(
+                    f"[DEBUG] Dentro de dead-zone ({TARGETING_DEADZONE_PIXELS}px). "
+                    f"No se requiere movimiento.",
+                    "green"
+                ))
+            return
+        
+        # SOLUCIÓN 2: Calcular delta basado en el error al centro
+        # Aplicar suavizado para movimiento natural
+        delta_x = error_x * MOUSE_SMOOTHING
+        delta_y = error_y * MOUSE_SMOOTHING
+        
+        # Acumular en float para precisión, redondear solo al aplicar
+        self.movement_path = [(delta_x, delta_y)]
+        
+        # Telemetría del delta calculado
+        if self.debug_counter % 10 == 0:
+            print(colored(
+                f"[TELEMETRY] DeltaCalculado=({delta_x:.2f},{delta_y:.2f}), "
+                f"Smoothing={MOUSE_SMOOTHING}",
+                "yellow"
+            ))
 
     def move_crosshair(self, x, y):
         """
         Executes the next step in a pre-planned movement path.
-        If no path exists, it does nothing.
+        SOLUCIÓN: Redondea solo en el momento de inyectar para máxima precisión.
         """
         if not self.movement_path:
             return
@@ -476,37 +445,50 @@ class Aimbot:
         # Pop the next movement step from the path
         move_x, move_y = self.movement_path.pop(0)
 
-        # Apply sensitivity scaling
-        divisor = self.sens_config['targeting_scale'] if Aimbot.is_targeted() else self.sens_config['xy_scale']
-        if divisor == 0:
-            print(colored("[ERROR] SENSITIVITY DIVISOR IS 0! Check config.json", "red"))
-            return
+        # SOLUCIÓN: Redondear solo aquí, justo antes de inyectar
+        rounded_x = round(move_x)
+        rounded_y = round(move_y)
         
-        # The path is already smooth, we just scale it for game sensitivity
-        final_move_x = move_x / divisor
-        final_move_y = move_y / divisor
-
-        # Clamp to a minimum of 1 if there's any movement, to ensure it registers
-        if abs(final_move_x) < 1 and final_move_x != 0: final_move_x = 1 if final_move_x > 0 else -1
-        if abs(final_move_y) < 1 and final_move_y != 0: final_move_y = 1 if final_move_y > 0 else -1
-
-        # Prevent movement from being too small to register
-        if final_move_x == 0 and final_move_y == 0:
+        # Si el movimiento redondeado es 0, no hacer nada
+        if rounded_x == 0 and rounded_y == 0:
+            if self.debug_counter % 30 == 0:
+                print(colored(
+                    f"[DEBUG] Delta muy pequeño post-redondeo: "
+                    f"original=({move_x:.2f},{move_y:.2f}) -> (0,0). Skipped.",
+                    "yellow"
+                ))
             return
 
         # Ejecutar el movimiento
         if self.mouse_method.lower() == 'ddxoft':
-            Aimbot.mouse_dll.DD_movR(int(final_move_x), int(final_move_y))
+            result = Aimbot.mouse_dll.DD_movR(rounded_x, rounded_y)
+            if self.debug_counter % 30 == 0:
+                print(colored(
+                    f"[DEBUG] DDXoft.DD_movR({rounded_x},{rounded_y}) -> ret={result}",
+                    "cyan"
+                ))
         elif self.mouse_method.lower() == 'win32':
-            Aimbot.ii_.mi = MouseInput(int(final_move_x), int(final_move_y), 0, 0x0001, 0, ctypes.pointer(Aimbot.extra))
+            Aimbot.ii_.mi = MouseInput(
+                rounded_x, rounded_y, 0, 0x0001, 0,
+                ctypes.pointer(Aimbot.extra)
+            )
             command = Input(ctypes.c_ulong(0), Aimbot.ii_)
-            ctypes.windll.user32.SendInput(1, ctypes.pointer(command), ctypes.sizeof(command))
+            result = ctypes.windll.user32.SendInput(
+                1, ctypes.pointer(command), ctypes.sizeof(command)
+            )
+            if self.debug_counter % 30 == 0:
+                print(colored(
+                    f"[DEBUG] Win32.SendInput({rounded_x},{rounded_y}) -> ret={result}",
+                    "cyan"
+                ))
         
-        # Debug mejorado con más información
+        # Telemetría de movimiento aplicado
         if self.debug_counter % 10 == 0:
-            movement = f"Move=({int(final_move_x)},{int(final_move_y)})"
-            path_left = f"Path Steps Left={len(self.movement_path)}"
-            print(colored(f"[DEBUG] MOVEMENT: Executing step. {movement}, {path_left}", "green"))
+            print(colored(
+                f"[TELEMETRY] DeltaEnviado=({rounded_x},{rounded_y}), "
+                f"PathStepsLeft={len(self.movement_path)}",
+                "green"
+            ))
         
         Aimbot.sleep(self.mouse_delay)
     
@@ -603,56 +585,68 @@ class Aimbot:
                     else:
                         continue
                 if len(result.boxes.xyxy) != 0: #player detected
-                    detections = []
-                    for box in result.boxes.xyxy: #iterate over each player detected
-                        x1, y1, x2, y2 = map(int, box)
-                        height = y2 - y1
-                        relative_head_X, relative_head_Y = int((x1 + x2)/2), int((y1 + y2)/2 - height/aim_height) # offset to roughly approximate the head using a ratio of the height
-                        
-                        crosshair_dist = math.dist((relative_head_X, relative_head_Y), (self.box_constant/2, self.box_constant/2))
-                        
-                        detections.append({
-                            "box": (x1, y1, x2, y2),
-                            "center_x": (x1 + x2) / 2,
-                            "center_y": (y1 + y2) / 2,
-                            "relative_head_X": relative_head_X,
-                            "relative_head_Y": relative_head_Y,
-                            "crosshair_dist": crosshair_dist
-                        })
+                    # This entire block now only runs if a target is found in the current frame.
+                    detections = [{
+                        "box": tuple(map(int, box)),
+                        "relative_head_X": int((box[0] + box[2]) / 2),
+                        "relative_head_Y": int((box[1] + box[3]) / 2 - (box[3] - box[1]) / aim_height),
+                        "crosshair_dist": math.dist(((box[0] + box[2]) / 2, (box[1] + box[3]) / 2), (self.box_constant / 2, self.box_constant / 2))
+                    } for box in result.boxes.xyxy]
 
-                    # --- TARGET LOCKING LOGIC ---
                     best_target = self.get_best_target(detections)
 
                     if best_target:
-                        closest_detection = best_target # Use the locked or new best target
-                        cv2.circle(frame, (closest_detection["relative_head_X"], closest_detection["relative_head_Y"]), 5, (115, 244, 113), -1) #draw circle on the head
-                        cv2.line(frame, (closest_detection["relative_head_X"], closest_detection["relative_head_Y"]), (self.box_constant//2, self.box_constant//2), (244, 242, 113), 2)
-
-                        absolute_head_X, absolute_head_Y = closest_detection["relative_head_X"] + detection_box['left'], closest_detection["relative_head_Y"] + detection_box['top']
-                        x1, y1 = closest_detection["box"][:2]
-
-                        rel_x, rel_y = closest_detection['relative_head_X'], closest_detection['relative_head_Y']
-                        dist = closest_detection["crosshair_dist"]
-                        abs_coords_str = f"Abs Coords=({absolute_head_X},{absolute_head_Y})"
-                        rel_coords_str = f"Rel Coords=({rel_x},{rel_y})"
+                        # All logic for drawing, planning, and moving is now safely inside this block.
+                        x1, y1, x2, y2 = best_target["box"]
+                        head_x, head_y = best_target["relative_head_X"], best_target["relative_head_Y"]
                         
-                        # Debug con información adicional del cursor
+                        # 🔍 DIBUJA LA CAJA DE DETECCIÓN COMPLETA
+                        cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)  # Verde
+                        
+                        # 🎯 DIBUJA EL PUNTO DE MIRA CALCULADO
+                        cv2.circle(frame, (head_x, head_y), 5, (115, 244, 113), -1)
+                        
+                        # 📏 DIBUJA LA LÍNEA DESDE EL CENTRO
+                        cv2.line(frame, (head_x, head_y), (self.box_constant//2, self.box_constant//2), (244, 242, 113), 2)
+                        
+                        # ➕ DIBUJA UNA CRUZ EN EL CENTRO DE LA PANTALLA
+                        center = self.box_constant // 2
+                        cv2.line(frame, (center - 10, center), (center + 10, center), (0, 0, 255), 2)  # Rojo horizontal
+                        cv2.line(frame, (center, center - 10), (center, center + 10), (0, 0, 255), 2)  # Rojo vertical
+
+                        absolute_head_X = head_x + detection_box['left']
+                        absolute_head_Y = head_y + detection_box['top']
+                        
+                        abs_coords_str = f"Abs Coords=({absolute_head_X},{absolute_head_Y})"
+                        rel_coords_str = f"Rel Coords=({head_x},{head_y})"
+                        
+                        # SOLUCIÓN: Calcular distancia AL CENTRO, no al cursor
+                        dist_to_center = math.hypot(
+                            absolute_head_X - screen_x,
+                            absolute_head_Y - screen_y
+                        )
+                        
                         if self.debug_counter % 10 == 0:
-                            try:
-                                cur_x, cur_y = win32api.GetCursorPos()
-                                cursor_info = f"Cursor=({cur_x},{cur_y})"
-                                print(colored(f"[DEBUG] TARGET: Dist={dist:.1f}. {rel_coords_str}. {abs_coords_str}. {cursor_info}", "green"))
-                            except:
-                                print(colored(f"[DEBUG] TARGET: Dist={dist:.1f}. {rel_coords_str}. {abs_coords_str}", "green"))
+                            # Mostrar la distancia AL CENTRO (métrica correcta)
+                            print(colored(
+                                f"[DEBUG] TARGET: DistToCENTER={dist_to_center:.1f}px, "
+                                f"{rel_coords_str}, {abs_coords_str}",
+                                "green"
+                            ))
                         
                         is_locked_on_target = Aimbot.is_target_locked(absolute_head_X, absolute_head_Y)
 
-                        # Plan a new movement path if we have a target and no active path
-                        if Aimbot.is_aimbot_enabled() and not self.movement_path and not is_locked_on_target:
-                            self.plan_professional_movement(absolute_head_X, absolute_head_Y, len(detections))
+                        if Aimbot.is_aimbot_enabled() and not is_locked_on_target:
+                            # SOLUCIÓN: Planificar movimiento con coordenadas absolutas
+                            self.plan_smooth_movement(absolute_head_X, absolute_head_Y)
 
                         if is_locked_on_target:
+                            # Limpiar path cuando está locked
+                            self.movement_path.clear()
                             current_time = time.perf_counter()
+                            
+                            if self.debug_counter % 30 == 0:
+                                print(colored("[DEBUG] TARGET LOCKED! No movement needed.", "green"))
                             
                             if use_trigger_bot and not Aimbot.is_shooting() and (current_time - self.last_shot_time) > self.shot_cooldown:
                                 if self.consecutive_shots < self.max_consecutive_shots:
@@ -673,9 +667,16 @@ class Aimbot:
                             cv2.putText(frame, "TARGETING", (x1 + 40, y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (115, 113, 244), 2)
 
                         if Aimbot.is_aimbot_enabled():
+                            # NOTA: move_crosshair ya no necesita las coordenadas del objetivo
+                            # porque plan_smooth_movement ya calculó el path necesario.
+                            # Solo ejecutamos el siguiente paso del path.
+                            # Las coordenadas que pasamos aquí son ignoradas por move_crosshair,
+                            # pero las mantenemos por compatibilidad de firma.
                             self.move_crosshair(absolute_head_X, absolute_head_Y)
-                    else: # No valid targets found this frame
-                        pass # No target lock, so nothing to do if no targets are found
+                else:
+                    # This is the crucial new part: If no targets are detected, clear any old movement plan.
+                    if self.movement_path:
+                        self.movement_path.clear()
 
                 fps = int(1/(time.perf_counter() - start_time)) if (time.perf_counter() - start_time) > 0 else 0
                 cv2.putText(frame, f"FPS: {fps}", (5, 30), cv2.FONT_HERSHEY_DUPLEX, 1, (113, 116, 244), 2)

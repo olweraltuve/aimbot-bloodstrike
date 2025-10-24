@@ -1,0 +1,9 @@
+{
+  "active_profile": "default",
+  "mouse_method": "ddxoft",
+  "capture_method": "bitblt",
+  "show_debug_window": true,
+  "enable_performance_logging": false,
+  "use_adaptive_learning_profile": true,
+  "suspend_key": "alt_l"
+}

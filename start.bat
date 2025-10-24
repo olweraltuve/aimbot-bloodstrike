@@ -16,6 +16,19 @@ if not exist "venv_cuda\Scripts\activate.bat" (
 echo Activating CUDA virtual environment...
 call venv_cuda\Scripts\activate.bat
 
-echo Running Lunar AI Aimbot with CUDA acceleration...
+echo.
+echo ===============================================
+echo   LUNAR AI AIMBOT - STARTING
+echo ===============================================
+echo.
+echo Available commands:
+echo   python lunar.py              - Run with default settings
+echo   python lunar.py --calibrate  - Run setup wizard
+echo   python lunar.py --profile fortnite - Use Fortnite profile
+echo   python lunar.py --list-profiles - Show all profiles
+echo.
+echo Starting with default settings...
+echo.
+
 python lunar.py
 pause
