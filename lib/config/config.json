@@ -1,8 +1,0 @@
-{
-    "xy_sens": 5.0,
-    "targeting_sens": 1.0,
-    "xy_scale": 2.0,
-    "targeting_scale": 200.0,
-    "_comment_xy_scale": "Calculado como (10 / xy_sens). Valores más altos = movimientos más lentos.",
-    "_comment_targeting_scale": "Calculado como (1000 / (targeting_sens * xy_sens)). Valores más altos = movimientos más lentos y precisos."
-}

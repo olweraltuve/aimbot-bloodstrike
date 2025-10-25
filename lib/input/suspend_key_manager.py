@@ -1,8 +1,8 @@
 """
 Suspend Key Manager
 ==================
-Gestiona una tecla de suspensión temporal del aimbot.
-Mientras se mantiene presionada, el aimbot no moverá el mouse.
+Gestiona una tecla de suspensión temporal del program_t.
+Mientras se mantiene presionada, el program_t no moverá el mouse.
 """
 
 import json
@@ -14,7 +14,7 @@ from lib.utils.logger import logger
 from lib.config.config_manager import config
 
 class SuspendKeyManager:
-    """Gestor de tecla de suspensión del aimbot"""
+    """Gestor de tecla de suspensión del program_t"""
     
     _instance = None
     
@@ -56,8 +56,8 @@ class SuspendKeyManager:
         print("\n" + "="*60)
         print(colored("SUSPEND KEY CONFIGURATION", "cyan", attrs=['bold']))
         print("="*60)
-        print(colored("\nThis key will TEMPORARILY SUSPEND the aimbot while held.", "yellow"))
-        print(colored("When you release it, the aimbot will continue working.", "yellow"))
+        print(colored("\nThis key will TEMPORARILY SUSPEND the program_t while held.", "yellow"))
+        print(colored("When you release it, the program_t will continue working.", "yellow"))
         print(colored("\nRecommended keys: Shift, Ctrl, Alt, CapsLock", "cyan"))
         print(colored("\nPress the key you want to use as suspend key...", "green"))
         
@@ -79,7 +79,7 @@ class SuspendKeyManager:
             config.set_user_setting('suspend_key', key_string)
             
             print(colored(f"\n✅ Suspend key set to: {key_string}", "green"))
-            print(colored(f"Hold '{key_string}' to temporarily suspend aimbot movements.", "yellow"))
+            print(colored(f"Hold '{key_string}' to temporarily suspend program_t movements.", "yellow"))
             print("="*60 + "\n")
             
             logger.info(f"Suspend key configured: {key_string}", "SUSPEND")
@@ -135,7 +135,7 @@ class SuspendKeyManager:
         
         key_name = self._key_to_string(self.suspend_key)
         logger.info(f"Suspend key monitoring started: {key_name}", "SUSPEND")
-        logger.info(f"Hold '{key_name}' to temporarily suspend aimbot", "SUSPEND")
+        logger.info(f"Hold '{key_name}' to temporarily suspend program_t", "SUSPEND")
         
         return True
     
@@ -153,7 +153,7 @@ class SuspendKeyManager:
                 if not self.suspended:
                     self.suspended = True
                     key_name = self._key_to_string(key)
-                    logger.info(f"Aimbot SUSPENDED (holding '{key_name}')", "SUSPEND")
+                    logger.info(f"Program_t SUSPENDED (holding '{key_name}')", "SUSPEND")
     
     def _on_release(self, key):
         """Callback cuando se suelta una tecla"""
@@ -162,10 +162,10 @@ class SuspendKeyManager:
                 if self.suspended:
                     self.suspended = False
                     key_name = self._key_to_string(key)
-                    logger.info(f"Aimbot RESUMED (released '{key_name}')", "SUSPEND")
+                    logger.info(f"Program_t RESUMED (released '{key_name}')", "SUSPEND")
     
     def is_suspended(self) -> bool:
-        """Verifica si el aimbot está suspendido"""
+        """Verifica si el program_t está suspendido"""
         with self.lock:
             return self.suspended
     

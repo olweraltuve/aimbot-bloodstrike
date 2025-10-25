@@ -24,7 +24,7 @@ if %errorLevel% == 0 (
 )
 
 echo ===============================================
-echo Lunar AI Aimbot - Administrator Mode with CUDA
+echo Lunar AI Program_t - Administrator Mode with CUDA
 echo ===============================================
 echo.
 
@@ -58,7 +58,7 @@ if not exist "venv_cuda\Scripts\activate.bat" (
 echo Activating CUDA virtual environment...
 call venv_cuda\Scripts\activate.bat
 
-echo Running Lunar AI Aimbot with administrator privileges and CUDA acceleration...
+echo Running Lunar AI Program_t with administrator privileges and CUDA acceleration...
 echo.
 echo Benefits of running as administrator:
 echo - Enhanced mouse input simulation

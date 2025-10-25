@@ -1,0 +1,15 @@
+{
+  "x_inverted": false,
+  "y_inverted": false,
+  "x_scale": 1.0,
+  "y_scale": 1.0,
+  "smoothing": 0.15,
+  "deadzone": 5,
+  "confidence": 1.0,
+  "sample_count": 3,
+  "last_updated": 1761303653.1754692,
+  "tests_completed": 3,
+  "notes": [
+    "All cycles successful - high confidence"
+  ]
+}

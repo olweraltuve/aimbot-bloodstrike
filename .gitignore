@@ -12,3 +12,14 @@ Thumbs.db
 
 # Logs/Data (if any)
 *.log
+
+# Large model files (exceed GitHub's 100MB limit)
+lib/yolov8x-worldv2.pt
+mobileclip_blt.ts
+
+# Other large files to ignore
+*.pt
+*.pth
+*.bin
+*.onnx
+*.ts

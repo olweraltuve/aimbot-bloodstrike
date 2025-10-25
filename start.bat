@@ -1,6 +1,6 @@
 @echo off
 echo ===============================================
-echo Lunar AI Aimbot - CUDA Enabled
+echo Lunar AI Program_t - CUDA Enabled
 echo ===============================================
 echo.
 
@@ -18,7 +18,7 @@ call venv_cuda\Scripts\activate.bat
 
 echo.
 echo ===============================================
-echo   LUNAR AI AIMBOT - STARTING
+echo   LUNAR AI PROGRAM_T - STARTING
 echo ===============================================
 echo.
 echo Available commands:

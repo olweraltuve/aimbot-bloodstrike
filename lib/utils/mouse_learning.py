@@ -191,7 +191,7 @@ class AdaptiveLearningSystem:
         logger.info("=" * 60, "ADAPTIVE")
         logger.info("The system will learn from REAL TARGETS detected in-game", "ADAPTIVE")
         logger.info(f"Will perform {self.max_cycles} approach cycles", "ADAPTIVE")
-        logger.info("Aimbot is now DISABLED - learning mode active", "ADAPTIVE")
+        logger.info("Program_t is now DISABLED - learning mode active", "ADAPTIVE")
         logger.info("=" * 60, "ADAPTIVE")
         
         return True
@@ -399,7 +399,7 @@ class AdaptiveLearningSystem:
             logger.info(f"✅ Applied learned smoothing to movement engine", "ADAPTIVE")
         
         logger.info("Press F5 to SAVE this profile", "ADAPTIVE")
-        logger.info("Aimbot is now RE-ENABLED", "ADAPTIVE")
+        logger.info("Program_t is now RE-ENABLED", "ADAPTIVE")
         logger.info("=" * 60, "ADAPTIVE")
 
     def get_learned_profile(self) -> LearningProfile:

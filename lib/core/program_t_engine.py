@@ -1,5 +1,5 @@
 """
-Aimbot Engine
+Program_t Engine
 =============
 Motor principal que coordina detección, movimiento y trigger.
 """
@@ -24,8 +24,8 @@ from lib.utils.logger import logger
 from lib.utils.performance_monitor import PerformanceMonitor
 from lib.utils.mouse_learning import ActiveMouseLearningSystem, AdaptiveLearningSystem
 
-class AimbotEngine:
-    """Motor principal del aimbot"""
+class ProgramTEngine:
+    """Motor principal del program_t"""
     
     def __init__(self, profile_name: Optional[str] = None):
         self.running = True
@@ -73,8 +73,8 @@ class AimbotEngine:
 
         self._load_learning_profile()
         
-        logger.info("Aimbot engine initialized successfully", "ENGINE")
-        logger.info(f"Press F1 to toggle aimbot, F2 to exit", "ENGINE")
+        logger.info("Program_t engine initialized successfully", "ENGINE")
+        logger.info(f"Press F1 to toggle program_t, F2 to exit", "ENGINE")
     
     def _init_screen_params(self):
         """Inicializa parámetros de pantalla"""
@@ -138,8 +138,36 @@ class AimbotEngine:
     
     def _init_model(self):
         """Inicializa modelo YOLO"""
-        logger.info("Loading YOLO model...", "ENGINE")
-        self.model = YOLO('lib/best.pt')
+        model_path = 'lib/yoloe-11l-seg.pt'
+        logger.info("=" * 60, "ENGINE")
+        logger.info("LOADING AI MODEL", "ENGINE")
+        logger.info("=" * 60, "ENGINE")
+        logger.info(f"Model file: {model_path}", "ENGINE")
+        logger.info("Model type: YOLOE (YOLO11-based) - Open Vocabulary Detection + Segmentation", "ENGINE")
+        
+        self.model = YOLO(model_path)
+        
+        # Poner el modelo en modo evaluación (necesario para get_text_pe)
+        self.model.eval()
+        
+        logger.info(f"Model loaded successfully from: {model_path}", "ENGINE")
+        
+        # Configurar YOLOE para detectar SOLO humanoides sin texto/nombres encima
+        # Prompts específicos que evitan detecciones con UI/texto
+        detection_classes = [
+            "person",
+            "human",
+            "human without description low visibility",
+            "player model without UI elements or labels"
+        ]
+        # YOLOE requiere text embeddings como segundo parámetro
+        text_embeddings = self.model.get_text_pe(detection_classes)
+        self.model.set_classes(detection_classes, text_embeddings)
+        
+        logger.info("Detection classes configured:", "ENGINE")
+        for i, cls in enumerate(detection_classes, 1):
+            logger.info(f"  {i}. {cls}", "ENGINE")
+        logger.info("=" * 60, "ENGINE")
         
         # Detectar CUDA
         self.device = 'cpu'
@@ -219,11 +247,11 @@ class AimbotEngine:
                 "ENGINE"
             )
     
-    def toggle_aimbot(self):
-        """Activa/desactiva el aimbot"""
+    def toggle_program_t(self):
+        """Activa/desactiva el program_t"""
         self.enabled = not self.enabled
         status = "ENABLED" if self.enabled else "DISABLED"
-        logger.info(f"Aimbot {status}", "ENGINE")
+        logger.info(f"Program_t {status}", "ENGINE")
         
         if not self.enabled:
             self.movement_engine.reset()
@@ -235,16 +263,16 @@ class AimbotEngine:
             logger.warning("Adaptive learning already active", "ENGINE")
             return
         
-        # Deshabilitar aimbot normal
+        # Deshabilitar program_t normal
         was_enabled = self.enabled
         self.enabled = False
         
         if was_enabled:
-            logger.info("Aimbot DISABLED for adaptive learning", "ENGINE")
+            logger.info("Program_t DISABLED for adaptive learning", "ENGINE")
         
         # Iniciar sistema adaptativo
         if not self.adaptive_learning.start():
-            # Si falla, reactivar aimbot si estaba activo
+            # Si falla, reactivar program_t si estaba activo
             self.enabled = was_enabled
     
     def start_calibration(self):
@@ -283,12 +311,12 @@ class AimbotEngine:
             self.learning_system.save_profile(learning_profile)
     
     def stop(self):
-        """Detiene el aimbot"""
-        logger.info("Shutting down aimbot engine...", "ENGINE")
+        """Detiene el program_t"""
+        logger.info("Shutting down program_t engine...", "ENGINE")
         self.running = False
     
     def run(self):
-        """Bucle principal del aimbot"""
+        """Bucle principal del program_t"""
         # Calcular región de detección
         half_w = self.screen_res_x / 2
         half_h = self.screen_res_y / 2
@@ -334,10 +362,10 @@ class AimbotEngine:
                             self.screen_x, self.screen_y
                         )
                         
-                        # Si terminó, reactivar aimbot
+                        # Si terminó, reactivar program_t
                         if not continue_learning:
                             self.enabled = True
-                            logger.info("Adaptive learning complete - Aimbot RE-ENABLED", "ENGINE")
+                            logger.info("Adaptive learning complete - Program_t RE-ENABLED", "ENGINE")
                     
                     # Continuar al siguiente frame sin procesar normalmente
                     self._render_frame(frame, loop_start)
@@ -407,13 +435,54 @@ class AimbotEngine:
             )
             
             if len(results) > 0 and len(results[0].boxes.xyxy) > 0:
+                # Obtener clases y confidences detectadas
+                boxes_data = results[0].boxes
+                class_ids = boxes_data.cls.cpu().numpy() if len(boxes_data.cls) > 0 else []
+                confidences = boxes_data.conf.cpu().numpy() if len(boxes_data.conf) > 0 else []
+                
                 targets = self.detection_engine.process_detections(
                     results[0].boxes.xyxy,
                     self.box_constant,
                     self.screen_x,
                     self.screen_y
                 )
-                return targets
+                
+                # Agregar información de clase y confianza a cada target
+                valid_targets = []
+                rejected_targets = []
+                
+                for i, target in enumerate(targets):
+                    if i < len(class_ids):
+                        class_id = int(class_ids[i])
+                        class_name = self.model.names.get(class_id, "unknown")
+                        target.class_name = class_name
+                        target.confidence = float(confidences[i]) if i < len(confidences) else 0.0
+                    else:
+                        target.class_name = "unknown"
+                        target.confidence = 0.0
+                    
+                    # FILTRO: Confianza mínima del 56%
+                    if target.confidence > 0.56:
+                        valid_targets.append(target)
+                    else:
+                        rejected_targets.append(target)
+                
+                # Log de targets rechazados
+                if rejected_targets and self.debug_counter % 30 == 0:
+                    for target in rejected_targets:
+                        conf_pct = int(target.confidence * 100)
+                        logger.warning(
+                            f"Detection rejected: {target.class_name} ({conf_pct}%) - "
+                            f"Did not reach minimum confidence (56%)",
+                            "DETECT"
+                        )
+                
+                # Debug: Mostrar qué clases válidas detectó YOLO-World
+                if self.debug_counter % 30 == 0 and len(valid_targets) > 0:
+                    classes_detected = [f"{t.class_name} ({t.confidence*100:.0f}%)" for t in valid_targets]
+                    logger.info(f"Valid targets: {len(valid_targets)} - {', '.join(classes_detected)}", "DETECT")
+                
+                return valid_targets
             
             return []
             
@@ -518,10 +587,13 @@ class AimbotEngine:
         cv2.line(frame, (center - 10, center), (center + 10, center), (0, 0, 255), 2)
         cv2.line(frame, (center, center - 10), (center, center + 10), (0, 0, 255), 2)
         
-        # Texto de estado
+        # Texto de estado + clase detectada + porcentaje
         status_text = "LOCKED" if is_locked else "TARGETING"
+        confidence_pct = int(target.confidence * 100)
+        class_text = f"{status_text}: {target.class_name} ({confidence_pct}%)"
+        
         cv2.putText(
-            frame, status_text, 
+            frame, class_text, 
             (x1 + 5, y1 - 5), 
             cv2.FONT_HERSHEY_SIMPLEX, 
             0.5, color, 2
@@ -577,11 +649,11 @@ class AimbotEngine:
             1, (113, 116, 244), 2
         )
         
-        # Estado del aimbot
+        # Estado del program_t
         status_text = "ENABLED" if self.enabled else "DISABLED"
         status_color = (0, 255, 0) if self.enabled else (0, 0, 255)
         cv2.putText(
-            frame, f"Aimbot: {status_text}", 
+            frame, f"Program_t: {status_text}", 
             (5, 60), 
             cv2.FONT_HERSHEY_SIMPLEX, 
             0.7, status_color, 2
@@ -589,7 +661,7 @@ class AimbotEngine:
         
         # Mostrar frame
         try:
-            cv2.imshow("AI Aimbot - Lunar LITE", frame)
+            cv2.imshow("AI Program_t - Lunar LITE", frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.running = False
         except Exception as e:

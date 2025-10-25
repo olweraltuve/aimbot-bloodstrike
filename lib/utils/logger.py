@@ -32,8 +32,8 @@ class ColoredFormatter(logging.Formatter):
         
         return message
 
-class AimbotLogger:
-    """Logger centralizado para todo el aimbot"""
+class Program_tLogger:
+    """Logger centralizado para todo el program_t"""
     
     _instance = None
     
@@ -57,7 +57,7 @@ class AimbotLogger:
         log_dir.mkdir(exist_ok=True)
         
         # Configurar logger principal
-        self.logger = logging.getLogger("AimbotLogger")
+        self.logger = logging.getLogger("Program_tLogger")
         self.logger.setLevel(logging.DEBUG)
         
         # Handler para consola con colores
@@ -71,7 +71,7 @@ class AimbotLogger:
         # Handler para archivo con todos los detalles
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         file_handler = logging.FileHandler(
-            log_dir / f"aimbot_{timestamp}.log",
+            log_dir / f"program_t_{timestamp}.log",
             encoding='utf-8'
         )
         file_handler.setLevel(logging.DEBUG)
@@ -115,4 +115,4 @@ class AimbotLogger:
             f.write('\n')
 
 # Instancia global
-logger = AimbotLogger()
+logger = Program_tLogger()

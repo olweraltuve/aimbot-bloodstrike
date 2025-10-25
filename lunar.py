@@ -1,7 +1,7 @@
 """
-Lunar AI Aimbot - Main Entry Point
+Lunar AI Program_t - Main Entry Point
 ===================================
-Neural Network-based aimbot with multi-game support.
+Neural Network-based program_t with multi-game support.
 
 Usage:
     python lunar.py              - Run with default settings
@@ -54,30 +54,30 @@ except ImportError:
     def check_and_request_admin():
         return False
 
-# Global reference to aimbot engine
-aimbot_engine = None
+# Global reference to program_t engine
+program_t_engine = None
 
 def on_key_release(key):
     """Maneja eventos de teclado"""
-    global aimbot_engine
+    global program_t_engine
     
     try:
         if key == keyboard.Key.f1:
-            if aimbot_engine:
-                aimbot_engine.toggle_aimbot()
+            if program_t_engine:
+                program_t_engine.toggle_program_t()
         elif key == keyboard.Key.f2:
-            if aimbot_engine:
-                aimbot_engine.stop()
+            if program_t_engine:
+                program_t_engine.stop()
         elif key == keyboard.Key.f3:
-            if aimbot_engine:
-                aimbot_engine.perf_monitor.print_stats()
+            if program_t_engine:
+                program_t_engine.perf_monitor.print_stats()
         elif key == keyboard.Key.f4:
             # NUEVO: Iniciar calibración adaptativa con targets reales
-            if aimbot_engine:
-                aimbot_engine.start_adaptive_learning()
+            if program_t_engine:
+                program_t_engine.start_adaptive_learning()
         elif key == keyboard.Key.f5:
-            if aimbot_engine:
-                aimbot_engine.save_learning_profile()
+            if program_t_engine:
+                program_t_engine.save_learning_profile()
     except Exception as e:
         logger.error(f"Error in key handler: {e}", "MAIN")
 
@@ -92,26 +92,26 @@ def print_banner():
  | |__| |_| | |\  |/ ___ \|  _ <   | |___ | |  | | | |___ 
  |_____\___/|_| \_/_/   \_\_| \_\  |_____|___| |_| |_____|
                                                            
-        🧠 AI-Powered Neural Network Aimbot 🎯
+        🧠 AI-Powered Neural Network Program_t 🎯
         Version 2.0 - Multi-Game Support Edition
 '''
     print(colored(banner, "green", attrs=['bold']))
     print(colored("="*60, "cyan"))
     print(colored("  LUNAR LITE - Free Edition", "yellow"))
     print(colored("  For full version, visit: https://gannonr.com/lunar", "yellow"))
-    print(colored("  Discord: discord.gg/aiaimbot", "yellow"))
+    print(colored("  Discord: discord.gg/aiprogram_t", "yellow"))
     print(colored("="*60 + "\n", "cyan"))
     
     from lib.input.suspend_key_manager import suspend_manager
 
     if suspend_manager.suspend_key:
         key_name = suspend_manager._key_to_string(suspend_manager.suspend_key)
-        print(colored(f"  Hold '{key_name}' to temporarily suspend aimbot", "cyan"))
+        print(colored(f"  Hold '{key_name}' to temporarily suspend program_t", "cyan"))
 
 def check_requirements():
     """Verifica que todos los archivos necesarios existan"""
     required_files = [
-        "lib/best.pt",
+        "lib/yoloe-11l-seg.pt",
         "lib/config/game_profiles.json"
     ]
     
@@ -147,7 +147,7 @@ def setup_environment():
 def parse_arguments():
     """Parsea argumentos de línea de comandos"""
     parser = argparse.ArgumentParser(
-        description='Lunar AI Aimbot - Neural Network-based aim assistance',
+        description='Lunar AI Program_t - Neural Network-based aim assistance',
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
     
@@ -212,7 +212,7 @@ def list_available_profiles():
 def main():
     """Función principal"""
     
-    global aimbot_engine
+    global program_t_engine
     
     # Parsear argumentos
     args = parse_arguments()
@@ -238,7 +238,7 @@ def main():
     if args.calibrate:
         run_calibration()
         
-        response = input(colored("\nDo you want to start the aimbot now? (y/n): ", "cyan"))
+        response = input(colored("\nDo you want to start the program_t now? (y/n): ", "cyan"))
         if response.lower() not in ['y', 'yes']:
             logger.info("Exiting after calibration.", "MAIN")
             return
@@ -248,31 +248,31 @@ def main():
         check_and_request_admin()
     
     # Información de inicio
-    logger.info("Starting Lunar AI Aimbot...", "MAIN")
+    logger.info("Starting Lunar AI Program_t...", "MAIN")
     
     # Cargar perfil
     profile_name = args.profile or config.get_user_setting('active_profile', 'default')
     logger.info(f"Using profile: {profile_name}", "MAIN")
     
-    # Inicializar aimbot engine
+    # Inicializar program_t engine
     try:
-        from lib.core.aimbot_engine import AimbotEngine
+        from lib.core.program_t_engine import ProgramTEngine
         
-        aimbot_engine = AimbotEngine(profile_name=profile_name)
+        program_t_engine = ProgramTEngine(profile_name=profile_name)
         
         # Configurar listener de teclado
         listener = keyboard.Listener(on_release=on_key_release)
         listener.start()
         
         logger.info("Keyboard listener started", "MAIN")
-        logger.info("Press F1 to toggle aimbot", "MAIN")
+        logger.info("Press F1 to toggle program_t", "MAIN")
         logger.info("Press F2 to exit", "MAIN")
         logger.info("Press F3 to show performance stats", "MAIN")
         logger.info("Press F4 to start ADAPTIVE LEARNING (learns from real targets)", "MAIN")
         logger.info("Press F5 to save learned profile", "MAIN")
         
         # Ejecutar bucle principal
-        aimbot_engine.run()
+        program_t_engine.run()
         
     except KeyboardInterrupt:
         logger.info("Interrupted by user (Ctrl+C)", "MAIN")
@@ -282,10 +282,10 @@ def main():
         logger.critical(traceback.format_exc(), "MAIN")
     finally:
         # Cleanup
-        if aimbot_engine:
-            aimbot_engine.cleanup()
+        if program_t_engine:
+            program_t_engine.cleanup()
         
-        logger.info("Aimbot stopped. Goodbye!", "MAIN")
+        logger.info("Program_t stopped. Goodbye!", "MAIN")
         input("\nPress ENTER to exit...")
 
 if __name__ == "__main__":

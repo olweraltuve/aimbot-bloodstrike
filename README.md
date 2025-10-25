@@ -1,6 +1,19 @@
-# 🧠 YoloV12 AI Aimbot - Lunar LITE v2.0
+# 🧠 YOLO-World v2 AI Program_t - Lunar LITE v2.0
 
-**Lunar LITE v2.0** es una versión completamente reescrita y mejorada del aimbot original [Lunar](https://github.com/zeyad-mansour/lunar).
+**Lunar LITE v2.0** es una versión completamente reescrita y mejorada del program_t original [Lunar](https://github.com/zeyad-mansour/lunar).
+
+## 🌍 **NUEVO: YOLO-World v2 - Detección de Humanoides**
+
+Esta versión utiliza **YOLOv8-World v2**, un modelo revolucionario de detección zero-shot:
+
+- 🎯 **Detección de Humanoides Mejorada**: Usa prompts de texto ("person", "human", "player", "character")
+- ⚡ **Zero-Shot Detection**: No requiere entrenamiento adicional
+- 🎨 **Interfaz Limpia**: Sin texto sobre las detecciones, solo indicadores visuales
+- 🔧 **Personalizable**: Cambia las clases detectadas fácilmente
+
+> 📖 Ver guía completa: [docs/YOLO_WORLD_SETUP.md](docs/YOLO_WORLD_SETUP.md)
+
+---
 
 ## ✨ Novedades en v2.0
 
@@ -47,8 +60,8 @@
 
 1. **Clonar el repositorio:**
 ```bash
-git clone https://github.com/tu-usuario/AI-Aimbot.git
-cd AI-Aimbot
+git clone https://github.com/tu-usuario/AI-Program_t.git
+cd AI-Program_t
 ```
 
 2. **Ejecutar setup:**
@@ -56,7 +69,13 @@ cd AI-Aimbot
 setup_cuda.bat
 ```
 
-3. **Iniciar el aimbot:**
+3. **Descargar modelo YOLO-World v2:**
+```batch
+download_yolov8_world.bat
+```
+> El modelo se descargará automáticamente en el primer inicio si no lo haces manualmente.
+
+4. **Iniciar el program_t:**
 ```batch
 start.bat
 ```
@@ -124,7 +143,7 @@ python lunar.py --list-profiles
 
 | Tecla | Acción |
 |-------|--------|
-| **F1** | Activar/Desactivar aimbot |
+| **F1** | Activar/Desactivar program_t |
 | **F2** | Salir del programa |
 | **F3** | Mostrar estadísticas de rendimiento |
 
@@ -154,7 +173,7 @@ python lunar.py --list-profiles
 
 ## 🔧 Solución de Problemas
 
-### ❌ El aimbot solo funciona cuando haces Alt+Tab (no funciona en el juego)
+### ❌ El program_t solo funciona cuando haces Alt+Tab (no funciona en el juego)
 
 **Causa:** Problema de captura de pantalla con juegos en pantalla completa.
 
@@ -168,7 +187,7 @@ python lunar.py --list-profiles
 }
 ```
 
-### ❌ El aimbot detecta pero no mueve el mouse
+### ❌ El program_t detecta pero no mueve el mouse
 
 **Causa:** Método de mouse no compatible o sin permisos de admin.
 
@@ -221,10 +240,10 @@ Ajustar en `lib/config/game_profiles.json`:
 ## 📁 Estructura del Proyecto
 
 ```
-AI-Aimbot/
+AI-Program_t/
 ├── lib/
 │   ├── core/              # Motores principales
-│   │   ├── aimbot_engine.py
+│   │   ├── program_t_engine.py
 │   │   ├── detection_engine.py
 │   │   └── movement_engine.py
 │   ├── capture/           # Captura de pantalla
@@ -243,9 +262,12 @@ AI-Aimbot/
 │   │   ├── logger.py
 │   │   ├── calibration.py
 │   │   └── performance_monitor.py
-│   └── best.pt            # Modelo YOLO
+│   └── yoloe-11l-seg.pt # Modelo YOLO-World v2
+├── docs/
+│   └── YOLO_WORLD_SETUP.md # Guía del modelo
 ├── logs/                  # Archivos de log
 ├── lunar.py               # Punto de entrada principal
+├── download_yolov8_world.bat # Descarga del modelo
 └── start.bat              # Script de inicio
 ```
 
@@ -321,7 +343,7 @@ El uso indebido puede resultar en:
 ## 💬 Soporte y Comunidad
 
 ### Discord
-👉 [discord.gg/aiaimbot](https://discord.gg/aiaimbot)
+👉 [discord.gg/aiprogram_t](https://discord.gg/aiprogram_t)
 
 ### Versión Premium (Lunar V2)
 

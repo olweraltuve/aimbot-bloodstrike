@@ -36,6 +36,7 @@ class Target:
     width: int
     height: int
     id: Optional[int] = None
+    class_name: str = "unknown"  # Nombre de la clase detectada por YOLO
 
 class DetectionEngine:
     """Motor de detección y seguimiento de objetivos"""
@@ -53,11 +54,16 @@ class DetectionEngine:
         boxes: List,
         box_constant: int,
         screen_x: int,
-        screen_y: int
+        screen_y: int,
+        min_confidence: float = 0.56
     ) -> List[Target]:
         """
         Procesa detecciones brutas del modelo YOLO.
+        Filtra objetivos con confianza menor al umbral mínimo.
         Retorna lista de objetivos con información calculada.
+        
+        Args:
+            min_confidence: Confianza mínima requerida (default: 0.56 = 56%)
         """
         if len(boxes) == 0:
             return []
@@ -92,7 +98,7 @@ class DetectionEngine:
                 head_x=head_x,
                 head_y=head_y,
                 crosshair_distance=crosshair_dist,
-                confidence=0.0,  # Se obtendría del modelo si está disponible
+                confidence=0.0,  # Se establece después en program_t_engine
                 center_x=int(center_box_x),
                 center_y=int(center_box_y),
                 width=width,
@@ -112,6 +118,7 @@ class DetectionEngine:
         """
         Selecciona el mejor objetivo según la estrategia configurada.
         Implementa target stickiness para reducir cambios erráticos.
+        Considera similitud visual si está habilitada.
         """
         if not targets:
             # Si no hay objetivos, resetear target actual

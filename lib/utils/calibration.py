@@ -19,7 +19,7 @@ class CalibrationWizard:
     def run(self):
         """Ejecuta el asistente de calibración"""
         print(colored("\n" + "="*60, "cyan"))
-        print(colored("  AI AIMBOT - CALIBRATION WIZARD", "cyan", attrs=['bold']))
+        print(colored("  AI PROGRAM_T - CALIBRATION WIZARD", "cyan", attrs=['bold']))
         print(colored("="*60 + "\n", "cyan"))
         
         # Seleccionar juego
@@ -39,7 +39,7 @@ class CalibrationWizard:
         self._save_config(game_profile, capture_method, mouse_method)
         
         print(colored("\n✅ Calibration complete!", "green", attrs=['bold']))
-        print(colored("You can now run the aimbot with your settings.\n", "green"))
+        print(colored("You can now run the program_t with your settings.\n", "green"))
     
     def _select_game(self) -> str:
         """Selecciona el perfil del juego"""
@@ -70,7 +70,7 @@ class CalibrationWizard:
     def _calibrate_sensitivity(self):
         """Calibra la sensibilidad del juego"""
         print(colored("\n--- Sensitivity Calibration ---", "yellow"))
-        print("This helps the aimbot match your in-game mouse settings.")
+        print("This helps the program_t match your in-game mouse settings.")
         print("Make sure both X and Y sensitivity are the SAME in-game.\n")
         
         def get_float(prompt: str) -> float:

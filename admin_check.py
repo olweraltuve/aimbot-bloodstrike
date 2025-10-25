@@ -1,7 +1,7 @@
 """
 Admin Permission Check and Elevation for Windows
 This module provides functions to check for administrator privileges
-and request elevation if needed for the AI Aimbot application.
+and request elevation if needed for the AI Program_t application.
 """
 
 import ctypes

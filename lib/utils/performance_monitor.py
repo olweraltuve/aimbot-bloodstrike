@@ -1,7 +1,7 @@
 """
 Performance Monitor
 ==================
-Monitorea y registra el rendimiento del aimbot.
+Monitorea y registra el rendimiento del program_t.
 """
 
 import time

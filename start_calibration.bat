@@ -1,6 +1,6 @@
 @echo off
 echo ===============================================
-echo Lunar AI Aimbot - Calibration Wizard
+echo Lunar AI Program_t - Calibration Wizard
 echo ===============================================
 echo.
 

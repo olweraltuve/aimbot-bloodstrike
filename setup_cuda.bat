@@ -1,6 +1,6 @@
 @echo off
 echo ===============================================
-echo AI Aimbot CUDA Setup Script
+echo AI Program_t CUDA Setup Script
 echo ===============================================
 echo.
 
@@ -70,5 +70,5 @@ echo To use the CUDA-enabled environment:
 echo   venv_cuda\Scripts\activate
 echo   python lunar.py
 echo.
-echo Your aimbot should now run with CUDA acceleration!
+echo Your program_t should now run with CUDA acceleration!
 pause
