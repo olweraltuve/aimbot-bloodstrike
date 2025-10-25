@@ -462,7 +462,7 @@ class ProgramTEngine:
                         target.confidence = 0.0
                     
                     # FILTRO: Confianza mínima del 56%
-                    if target.confidence > 0.56:
+                    if target.confidence > 0.50:
                         valid_targets.append(target)
                     else:
                         rejected_targets.append(target)

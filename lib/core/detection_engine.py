@@ -55,7 +55,7 @@ class DetectionEngine:
         box_constant: int,
         screen_x: int,
         screen_y: int,
-        min_confidence: float = 0.56
+        min_confidence: float = 0.50
     ) -> List[Target]:
         """
         Procesa detecciones brutas del modelo YOLO.
@@ -63,7 +63,7 @@ class DetectionEngine:
         Retorna lista de objetivos con información calculada.
         
         Args:
-            min_confidence: Confianza mínima requerida (default: 0.56 = 56%)
+            min_confidence: Confianza mínima requerida (default: 0.50 = 56%)
         """
         if len(boxes) == 0:
             return []

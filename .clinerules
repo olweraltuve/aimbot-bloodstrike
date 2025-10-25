@@ -1,6 +1,8 @@
-MANDATORY RULE: WHENEVER AN INSTALLATION OR EXECUTION SCRIPT IS GOING TO BE MODIFIED, IT MUST BE SET TO RUN WITH "VENV_CUDA"
+MANDATORY RULE: CLINERULES LANGUAGE REQUIREMENT:
+- ALL CLINERULES MUST BE WRITTEN AND MAINTAINED IN ENGLISH ONLY
+- No exceptions - all rules, comments, and documentation within this file must be in English
 
-MANDATORY RULE: ALL CLINERULES MUST BE FOLLOWED WITHOUT EXCEPTION.
+MANDATORY RULE: WHENEVER AN INSTALLATION OR EXECUTION SCRIPT IS GOING TO BE MODIFIED, IT MUST BE SET TO RUN WITH "VENV_CUDA"
 
 MANDATORY RULE: PYTHON FILES MUST USE THE NEW MODULAR ARCHITECTURE:
 - Use lib/core/ for engine components
@@ -9,11 +11,12 @@ MANDATORY RULE: PYTHON FILES MUST USE THE NEW MODULAR ARCHITECTURE:
 - Use lib/config/ for configuration
 - Use lib/utils/ for utilities
 
-MANDATORY RULE: ALWAYS USE THE LOGGER:
+MANDATORY RULE: LOGGING AND OUTPUT:
 - from lib.utils.logger import logger
 - logger.info(message, category)
 - logger.error(message, category)
-- NO usar print() directly except in the banner
+- Allowed to use print() and termcolor for informational and status messages
+- Logger should be used for logs that require file persistence
 
 MANDATORY RULE: CONFIGURATION MUST USE config_manager:
 - from lib.config.config_manager import config
@@ -26,11 +29,22 @@ MANDATORY RULE: ALL PATHS MUST BE CONSTRUCTED WITH Path() OR os.path.join():
 - O: path = os.path.join(script_dir, "file.json")
 
 MANDATORY RULE: ERROR HANDLING:
-- Siempre usar try/except en operaciones críticas
-- Lograr errores con logger.error()
-- Proporcionar mensajes claros al usuario
+- Always use try/except in critical operations
+- Log errors with logger.error()
+- Provide clear messages to the user
 
 MANDATORY RULE: PERFORMANCE:
-- Usar threading.Lock() para operaciones thread-unsafe
-- Limitar FPS para evitar uso excesivo de CPU
-- Monitorear rendimiento con PerformanceMonitor
+- Use threading.Lock() for thread-unsafe operations
+- Limit FPS to avoid excessive CPU usage
+- Monitor performance with PerformanceMonitor
+
+MANDATORY RULE: LANGUAGE AND TERMINOLOGY:
+- FORBIDDEN to use words with negative connotations
+- Use appropriate euphemisms in variable names, functions, comments and documentation
+- Euphemisms MUST NOT reference anything that could be considered sensitive or delicate
+- Maintain professional and neutral language throughout all code
+
+MANDATORY RULE: CLINERULES COMPLIANCE:
+- ALL CLINERULES MUST BE FOLLOWED WITHOUT EXCEPTION
+- Every rule in this file is mandatory and must be strictly adhered to
+- Violations of any CLINERULE are considered critical failures

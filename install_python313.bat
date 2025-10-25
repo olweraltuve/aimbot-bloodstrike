@@ -7,7 +7,7 @@ echo This will install Python 3.13 for Windows.
 echo.
 
 echo Downloading Python 3.13 installer...
-powershell -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe' -OutFile 'python313-installer.exe'"
+powershell -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.13.8/python-3.13.0-amd64.exe' -OutFile 'python313-installer.exe'"
 
 if exist python313-installer.exe (
     echo.

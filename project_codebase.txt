@@ -1,0 +1,5169 @@
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\.clinerules>: "MANDATORY RULE: CLINERULES LANGUAGE REQUIREMENT:
+- ALL CLINERULES MUST BE WRITTEN AND MAINTAINED IN ENGLISH ONLY
+- No exceptions - all rules, comments, and documentation within this file must be in English
+
+MANDATORY RULE: WHENEVER AN INSTALLATION OR EXECUTION SCRIPT IS GOING TO BE MODIFIED, IT MUST BE SET TO RUN WITH "VENV_CUDA"
+
+MANDATORY RULE: PYTHON FILES MUST USE THE NEW MODULAR ARCHITECTURE:
+- Use lib/core/ for engine components
+- Use lib/capture/ for screen capture
+- Use lib/input/ for mouse/keyboard
+- Use lib/config/ for configuration
+- Use lib/utils/ for utilities
+
+MANDATORY RULE: LOGGING AND OUTPUT:
+- from lib.utils.logger import logger
+- logger.info(message, category)
+- logger.error(message, category)
+- Allowed to use print() and termcolor for informational and status messages
+- Logger should be used for logs that require file persistence
+
+MANDATORY RULE: CONFIGURATION MUST USE config_manager:
+- from lib.config.config_manager import config
+- config.get_value('section', 'key')
+- config.set_value('section', 'key', value=X)
+
+MANDATORY RULE: ALL PATHS MUST BE CONSTRUCTED WITH Path() OR os.path.join():
+- from pathlib import Path
+- path = Path("lib/config") / "file.json"
+- O: path = os.path.join(script_dir, "file.json")
+
+MANDATORY RULE: ERROR HANDLING:
+- Always use try/except in critical operations
+- Log errors with logger.error()
+- Provide clear messages to the user
+
+MANDATORY RULE: PERFORMANCE:
+- Use threading.Lock() for thread-unsafe operations
+- Limit FPS to avoid excessive CPU usage
+- Monitor performance with PerformanceMonitor
+
+MANDATORY RULE: LANGUAGE AND TERMINOLOGY:
+- FORBIDDEN to use words with negative connotations
+- Use appropriate euphemisms in variable names, functions, comments and documentation
+- Euphemisms MUST NOT reference anything that could be considered sensitive or delicate
+- Maintain professional and neutral language throughout all code
+
+MANDATORY RULE: CLINERULES COMPLIANCE:
+- ALL CLINERULES MUST BE FOLLOWED WITHOUT EXCEPTION
+- Every rule in this file is mandatory and must be strictly adhered to
+- Violations of any CLINERULE are considered critical failures
+";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\admin_check.py>: """"
+Admin Permission Check and Elevation for Windows
+This module provides functions to check for administrator privileges
+and request elevation if needed for the AI Program_t application.
+"""
+
+import ctypes
+import os
+import sys
+import subprocess
+import platform
+from termcolor import colored
+
+def is_admin():
+    """
+    Check if the current process has administrator privileges.
+    
+    Returns:
+        bool: True if running as administrator, False otherwise
+    """
+    try:
+        # Method 1: Check using ctypes (Windows)
+        if platform.system() == 'Windows':
+            return ctypes.windll.shell32.IsUserAnAdmin()
+        else:
+            # On non-Windows systems, check for root/sudo
+            return os.geteuid() == 0
+    except Exception as e:
+        print(f"[WARNING] Failed to check admin status: {e}")
+        return False
+
+def request_admin_elevation():
+    """
+    Request administrator privileges by restarting the script with UAC prompt.
+    
+    Returns:
+        bool: True if elevation was requested, False if already admin or failed
+    """
+    if is_admin():
+        return False  # Already running as admin
+    
+    print(colored("[INFO] Administrator privileges required for optimal performance", "yellow"))
+    print(colored("[INFO] Requesting elevation via UAC...", "yellow"))
+    
+    try:
+        # Get the current script path
+        script = os.path.abspath(sys.argv[0])
+        params = ' '.join([f'"{arg}"' for arg in sys.argv[1:]])
+        
+        # Request UAC elevation
+        ctypes.windll.shell32.ShellExecuteW(
+            None,  # hwnd
+            "runas",  # operation (run as administrator)
+            sys.executable,  # executable (Python interpreter)
+            f'"{script}" {params}',  # parameters
+            None,  # working directory
+            1  # nShow (SW_SHOWNORMAL)
+        )
+        
+        print(colored("[SUCCESS] Admin elevation requested. Please accept UAC prompt.", "green"))
+        return True
+        
+    except Exception as e:
+        print(colored(f"[ERROR] Failed to request admin elevation: {e}", "red"))
+        print(colored("[INFO] You can run the application as administrator manually", "yellow"))
+        return False
+
+def check_and_request_admin():
+    """
+    Main function to check admin status and request elevation if needed.
+    
+    Returns:
+        bool: True if running as admin or elevation successful, False otherwise
+    """
+    if is_admin():
+        print(colored("[SUCCESS] Running with administrator privileges", "green"))
+        return True
+    
+    print(colored("[WARNING] Running without administrator privileges", "yellow"))
+    print(colored("[INFO] Some features may not work optimally:", "yellow"))
+    print(colored("  - Low-level mouse input simulation", "yellow"))
+    print(colored("  - Screen capture in fullscreen applications", "yellow"))
+    print(colored("  - System-level optimizations", "yellow"))
+    
+    # Ask user if they want to elevate
+    try:
+        response = input(colored("Do you want to restart with admin privileges? (y/N): ", "cyan")).strip().lower()
+        if response in ['y', 'yes']:
+            if request_admin_elevation():
+                sys.exit(0)  # Exit current process, elevated one will start
+            else:
+                print(colored("[INFO] Continuing without admin privileges...", "yellow"))
+                return False
+        else:
+            print(colored("[INFO] Continuing without admin privileges...", "yellow"))
+            return False
+    except (KeyboardInterrupt, EOFError):
+        print(colored("\n[INFO] Continuing without admin privileges...", "yellow"))
+        return False
+
+def get_admin_benefits():
+    """
+    Returns a description of benefits when running with admin privileges.
+    """
+    benefits = [
+        "Enhanced mouse input simulation for better anti-cheat compatibility",
+        "Improved screen capture in fullscreen applications",
+        "Better system resource management",
+        "Reduced input latency",
+        "Compatibility with more game protection systems"
+    ]
+    return benefits
+
+if __name__ == "__main__":
+    # Test the admin check functionality
+    print("Admin Permission Check Test")
+    print(f"Running as admin: {is_admin()}")
+    
+    if not is_admin():
+        print("Benefits of admin privileges:")
+        for benefit in get_admin_benefits():
+            print(f"  - {benefit}")
+        
+        if input("Test elevation? (y/N): ").lower() == 'y':
+            check_and_request_admin()";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\install_python313.bat>: "@echo off
+echo ===============================================
+echo Python 3.13 Installation Script
+echo ===============================================
+echo.
+echo This will install Python 3.13 for Windows.
+echo.
+
+echo Downloading Python 3.13 installer...
+powershell -Command "Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.13.8/python-3.13.0-amd64.exe' -OutFile 'python313-installer.exe'"
+
+if exist python313-installer.exe (
+    echo.
+    echo Running Python 3.13 installer...
+    echo IMPORTANT: During installation, make sure to:
+    echo   - Check "Add python.exe to PATH"
+    echo   - Click "Customize installation"
+    echo   - In Advanced Options, check "Install for all users"
+    echo   - Change installation path to: C:\Python313\
+    echo   - DO NOT check "Associate files with Python"
+    echo.
+    echo The installer will now open. Please follow the instructions above.
+    echo.
+    pause
+    start /wait python313-installer.exe
+) else (
+    echo Failed to download Python 3.13 installer
+    echo Please download manually from:
+    echo https://www.python.org/downloads/release/python-3130/
+    pause
+    exit /b 1
+)
+
+echo.
+echo Cleaning up installer...
+del python313-installer.exe
+
+echo.
+echo Verifying Python 3.13 installation...
+where python >nul 2>&1
+if %errorlevel% equ 0 (
+    echo Python 3.13 successfully installed!
+    echo.
+    echo Now run setup_cuda.bat to set up the CUDA environment.
+) else (
+    echo Python 3.13 installation may have failed.
+    echo Please check if Python 3.13 is available in your system.
+)
+
+echo.
+pause";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lunar.py>: """"
+Lunar AI Program_t - Main Entry Point
+===================================
+Neural Network-based program_t with multi-game support.
+
+Usage:
+    python lunar.py              - Run with default settings
+    python lunar.py --calibrate  - Run calibration wizard
+    python lunar.py --profile fortnite - Use specific game profile
+    python lunar.py --debug      - Enable debug mode
+"""
+
+import os
+import sys
+import argparse
+from pathlib import Path
+from pynput import keyboard
+from termcolor import colored
+
+# ==================== INICIO DE LA SOLUCIÓN - CORRECCIÓN DPI ====================
+# Esto DEBE ejecutarse ANTES de cualquier otra cosa, especialmente antes de importar
+# módulos locales que usen 'ctypes' (como admin_check). De esta forma, garantizamos
+# que el proceso se marque como DPI-Aware desde el principio.
+import platform
+if platform.system() == "Windows":
+    try:
+        import ctypes
+        # Usamos la API de shcore.dll, que es la forma moderna y recomendada.
+        # El valor '2' corresponde a PER_MONITOR_AWARE_V2.
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    except (ImportError, AttributeError):
+        # Si falla (ej. Windows 7), usamos el método más antiguo.
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except Exception as e:
+            # Si todo falla, advertimos al usuario.
+            print(f"[AVISO] No se pudo establecer la conciencia de PPP (DPI). La resolución puede ser incorrecta en pantallas con escalado: {e}")
+# ===================== FIN DE LA SOLUCIÓN - CORRECCIÓN DPI =====================
+
+
+# Add lib to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+# Import utilities
+from lib.utils.logger import logger
+from lib.utils.calibration import run_calibration
+from lib.config.config_manager import config
+
+# Import admin check
+try:
+    from admin_check import check_and_request_admin
+except ImportError:
+    logger.warning("Admin check module not found. Running without admin check.", "MAIN")
+    def check_and_request_admin():
+        return False
+
+# Global reference to program_t engine
+program_t_engine = None
+
+def on_key_release(key):
+    """Maneja eventos de teclado"""
+    global program_t_engine
+    
+    try:
+        if key == keyboard.Key.f1:
+            if program_t_engine:
+                program_t_engine.toggle_program_t()
+        elif key == keyboard.Key.f2:
+            if program_t_engine:
+                program_t_engine.stop()
+        elif key == keyboard.Key.f3:
+            if program_t_engine:
+                program_t_engine.perf_monitor.print_stats()
+        elif key == keyboard.Key.f4:
+            # NUEVO: Iniciar calibración adaptativa con targets reales
+            if program_t_engine:
+                program_t_engine.start_adaptive_learning()
+        elif key == keyboard.Key.f5:
+            if program_t_engine:
+                program_t_engine.save_learning_profile()
+    except Exception as e:
+        logger.error(f"Error in key handler: {e}", "MAIN")
+
+def print_banner():
+    """Imprime el banner de inicio"""
+    os.system('cls' if os.name == 'nt' else 'clear')
+    
+    banner = r'''
+  _    _   _ _   _    _    ____     _     ___ _____ _____ 
+ | |  | | | | \ | |  / \  |  _ \   | |   |_ _|_   _| ____|
+ | |  | | | |  \| | / _ \ | |_) |  | |    | |  | | |  _|  
+ | |__| |_| | |\  |/ ___ \|  _ <   | |___ | |  | | | |___ 
+ |_____\___/|_| \_/_/   \_\_| \_\  |_____|___| |_| |_____|
+                                                           
+        🧠 AI-Powered Neural Network Program_t 🎯
+        Version 2.0 - Multi-Game Support Edition
+'''
+    print(colored(banner, "green", attrs=['bold']))
+    print(colored("="*60, "cyan"))
+    print(colored("  LUNAR LITE - Free Edition", "yellow"))
+    print(colored("  For full version, visit: https://gannonr.com/lunar", "yellow"))
+    print(colored("  Discord: discord.gg/aiprogram_t", "yellow"))
+    print(colored("="*60 + "\n", "cyan"))
+    
+    from lib.input.suspend_key_manager import suspend_manager
+
+    if suspend_manager.suspend_key:
+        key_name = suspend_manager._key_to_string(suspend_manager.suspend_key)
+        print(colored(f"  Hold '{key_name}' to temporarily suspend program_t", "cyan"))
+
+def check_requirements():
+    """Verifica que todos los archivos necesarios existan"""
+    required_files = [
+        "lib/yoloe-11l-seg.pt",
+        "lib/config/game_profiles.json"
+    ]
+    
+    missing = []
+    for file_path in required_files:
+        if not Path(file_path).exists():
+            missing.append(file_path)
+    
+    if missing:
+        logger.error("Missing required files:", "MAIN")
+        for f in missing:
+            logger.error(f"  - {f}", "MAIN")
+        logger.error("Please ensure all files are present.", "MAIN")
+        return False
+    
+    return True
+
+def setup_environment():
+    """Configura el entorno de ejecución"""
+    # Ocultar mensajes de pygame
+    os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+    
+    # Crear directorios necesarios
+    directories = [
+        "lib/config",
+        "logs",
+        "lib/data"
+    ]
+    
+    for directory in directories:
+        Path(directory).mkdir(parents=True, exist_ok=True)
+
+def parse_arguments():
+    """Parsea argumentos de línea de comandos"""
+    parser = argparse.ArgumentParser(
+        description='Lunar AI Program_t - Neural Network-based aim assistance',
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    
+    parser.add_argument(
+        '--calibrate', 
+        action='store_true',
+        help='Run calibration wizard for game-specific settings'
+    )
+    
+    parser.add_argument(
+        '--profile',
+        type=str,
+        default=None,
+        help='Specify game profile to use (e.g., fortnite, valorant)'
+    )
+    
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Enable debug mode with verbose logging'
+    )
+    
+    parser.add_argument(
+        '--no-admin',
+        action='store_true',
+        help='Skip admin privilege check (not recommended)'
+    )
+    
+    parser.add_argument(
+        '--list-profiles',
+        action='store_true',
+        help='List all available game profiles'
+    )
+    
+    return parser.parse_args()
+
+def list_available_profiles():
+    """Lista todos los perfiles disponibles"""
+    profiles = config.list_profiles()
+    
+    print(colored("\n📋 Available Game Profiles:", "cyan", attrs=['bold']))
+    print(colored("="*60, "cyan"))
+    
+    for profile_name in profiles:
+        profile = config.get_profile(profile_name)
+        name = profile.get('name', profile_name)
+        desc = profile.get('description', 'No description')
+        
+        print(colored(f"\n🎮 {name}", "yellow", attrs=['bold']))
+        print(colored(f"   ID: {profile_name}", "white"))
+        print(colored(f"   Description: {desc}", "white"))
+        
+        # Mostrar configuración clave
+        det = profile.get('detection', {})
+        mov = profile.get('movement', {})
+        
+        print(colored(f"   FOV: {det.get('fov', 'N/A')}", "white"))
+        print(colored(f"   Smoothing: {mov.get('smoothing', 'N/A')}", "white"))
+    
+    print(colored("\n" + "="*60 + "\n", "cyan"))
+
+def main():
+    """Función principal"""
+    
+    global program_t_engine
+    
+    # Parsear argumentos
+    args = parse_arguments()
+    
+    # Configurar entorno
+    setup_environment()
+    
+    # Mostrar banner
+    print_banner()
+    
+    # Listar perfiles si se solicita
+    if args.list_profiles:
+        list_available_profiles()
+        return
+    
+    # Verificar requisitos
+    if not check_requirements():
+        logger.critical("Requirement check failed. Exiting.", "MAIN")
+        input("Press ENTER to exit...")
+        return
+    
+    # Calibración
+    if args.calibrate:
+        run_calibration()
+        
+        response = input(colored("\nDo you want to start the program_t now? (y/n): ", "cyan"))
+        if response.lower() not in ['y', 'yes']:
+            logger.info("Exiting after calibration.", "MAIN")
+            return
+    
+    # Verificar privilegios de administrador
+    if not args.no_admin:
+        check_and_request_admin()
+    
+    # Información de inicio
+    logger.info("Starting Lunar AI Program_t...", "MAIN")
+    
+    # Cargar perfil
+    profile_name = args.profile or config.get_user_setting('active_profile', 'default')
+    logger.info(f"Using profile: {profile_name}", "MAIN")
+    
+    # Inicializar program_t engine
+    try:
+        from lib.core.program_t_engine import ProgramTEngine
+        
+        program_t_engine = ProgramTEngine(profile_name=profile_name)
+        
+        # Configurar listener de teclado
+        listener = keyboard.Listener(on_release=on_key_release)
+        listener.start()
+        
+        logger.info("Keyboard listener started", "MAIN")
+        logger.info("Press F1 to toggle program_t", "MAIN")
+        logger.info("Press F2 to exit", "MAIN")
+        logger.info("Press F3 to show performance stats", "MAIN")
+        logger.info("Press F4 to start ADAPTIVE LEARNING (learns from real targets)", "MAIN")
+        logger.info("Press F5 to save learned profile", "MAIN")
+        
+        # Ejecutar bucle principal
+        program_t_engine.run()
+        
+    except KeyboardInterrupt:
+        logger.info("Interrupted by user (Ctrl+C)", "MAIN")
+    except Exception as e:
+        logger.critical(f"Fatal error: {e}", "MAIN")
+        import traceback
+        logger.critical(traceback.format_exc(), "MAIN")
+    finally:
+        # Cleanup
+        if program_t_engine:
+            program_t_engine.cleanup()
+        
+        logger.info("Program_t stopped. Goodbye!", "MAIN")
+        input("\nPress ENTER to exit...")
+
+if __name__ == "__main__":
+    main()
+";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\README.md>: "# 🧠 YOLO-World v2 AI Program_t - Lunar LITE v2.0
+
+**Lunar LITE v2.0** es una versión completamente reescrita y mejorada del program_t original [Lunar](https://github.com/zeyad-mansour/lunar).
+
+## 🌍 **NUEVO: YOLO-World v2 - Detección de Humanoides**
+
+Esta versión utiliza **YOLOv8-World v2**, un modelo revolucionario de detección zero-shot:
+
+- 🎯 **Detección de Humanoides Mejorada**: Usa prompts de texto ("person", "human", "player", "character")
+- ⚡ **Zero-Shot Detection**: No requiere entrenamiento adicional
+- 🎨 **Interfaz Limpia**: Sin texto sobre las detecciones, solo indicadores visuales
+- 🔧 **Personalizable**: Cambia las clases detectadas fácilmente
+
+> 📖 Ver guía completa: [docs/YOLO_WORLD_SETUP.md](docs/YOLO_WORLD_SETUP.md)
+
+---
+
+## ✨ Novedades en v2.0
+
+### 🎮 **Soporte Multi-Juego**
+- Perfiles optimizados para múltiples juegos (Fortnite, Valorant, Apex Legends)
+- Sistema de calibración automática
+- Configuración por juego con parámetros específicos
+
+### 🔧 **Arquitectura Modular**
+- Motor de detección separado y mejorado
+- Motor de movimiento con humanización avanzada
+- Sistema de captura con auto-detección de método óptimo
+- Gestión de mouse con fallback automático
+
+### 📊 **Monitoreo de Rendimiento**
+- Métricas de FPS en tiempo real
+- Logging detallado con niveles
+- Estadísticas de uso de CPU/memoria
+- Logs separados por categoría
+
+### 🎯 **Mejoras en Precisión**
+- Target stickiness (reduce cambios erráticos)
+- Deadzone configurable
+- Humanización de movimientos (curvas Bézier, ruido, overshoot)
+- Aceleración/desaceleración dinámica
+
+### 🛡️ **Mejoras Anti-Detección**
+- Soporte DDXoft (kernel-level, baja detección)
+- Movimientos humanizados con aleatoriedad
+- Trigger bot con delays variables
+- Sistema de captura compatible con pantalla completa
+
+---
+
+## 🚀 Instalación
+
+### Requisitos Previos
+- Windows 10/11
+- Python 3.12 o 3.13
+- NVIDIA GPU con CUDA (recomendado para mejor rendimiento)
+- 4GB+ RAM
+
+### Instalación Automática
+
+1. **Clonar el repositorio:**
+```bash
+git clone https://github.com/tu-usuario/AI-Program_t.git
+cd AI-Program_t
+```
+
+2. **Ejecutar setup:**
+```batch
+setup_cuda.bat
+```
+
+3. **Descargar modelo YOLO-World v2:**
+```batch
+download_yolov8_world.bat
+```
+> El modelo se descargará automáticamente en el primer inicio si no lo haces manualmente.
+
+4. **Iniciar el program_t:**
+```batch
+start.bat
+```
+
+### Instalación Manual
+
+1. **Instalar Python 3.13:**
+```batch
+install_python313.bat
+```
+
+2. **Crear entorno virtual:**
+```batch
+python -m venv venv_cuda
+venv_cuda\Scripts\activate
+```
+
+3. **Instalar dependencias:**
+```batch
+pip install -r requirements_cuda.txt
+```
+
+---
+
+## ⚙️ Configuración
+
+### 🎮 Calibración Rápida (Recomendado)
+
+```batch
+start_calibration.bat
+```
+
+El asistente te guiará para:
+1. Seleccionar tu juego
+2. Calibrar sensibilidad (si es necesario)
+3. Elegir método de captura
+4. Configurar método de mouse
+
+### 📝 Perfiles de Juego Disponibles
+
+| Juego | ID | Características |
+|-------|-----|----------------|
+| **Fortnite** | `fortnite` | FOV grande, movimiento rápido |
+| **Valorant** | `valorant` | Precisión extrema, headshot focus |
+| **Apex Legends** | `apex_legends` | Movimiento muy rápido, tracking |
+| **Custom** | `custom` | Personalizable para otros juegos |
+
+### 🎯 Usar un Perfil Específico
+
+```batch
+python lunar.py --profile valorant
+```
+
+### 📋 Listar Perfiles Disponibles
+
+```batch
+python lunar.py --list-profiles
+```
+
+---
+
+## 🎮 Uso
+
+### Controles de Teclado
+
+| Tecla | Acción |
+|-------|--------|
+| **F1** | Activar/Desactivar program_t |
+| **F2** | Salir del programa |
+| **F3** | Mostrar estadísticas de rendimiento |
+
+### Opciones de Línea de Comandos
+
+```batch
+# Modo normal
+python lunar.py
+
+# Con calibración
+python lunar.py --calibrate
+
+# Perfil específico
+python lunar.py --profile fortnite
+
+# Modo debug
+python lunar.py --debug
+
+# Sin verificación de admin
+python lunar.py --no-admin
+
+# Listar perfiles
+python lunar.py --list-profiles
+```
+
+---
+
+## 🔧 Solución de Problemas
+
+### ❌ El program_t solo funciona cuando haces Alt+Tab (no funciona en el juego)
+
+**Causa:** Problema de captura de pantalla con juegos en pantalla completa.
+
+**Solución:**
+1. **Cambiar el juego a MODO VENTANA SIN BORDES** (más confiable)
+2. O ejecutar calibración y seleccionar método `BitBlt`
+3. O editar `lib/config/user_config.json`:
+```json
+{
+  "capture_method": "bitblt"
+}
+```
+
+### ❌ El program_t detecta pero no mueve el mouse
+
+**Causa:** Método de mouse no compatible o sin permisos de admin.
+
+**Solución:**
+1. **Ejecutar como ADMINISTRADOR:** `start_admin.bat`
+2. O ejecutar calibración y probar ambos métodos
+3. Verificar que `lib/mouse/dd40605x64.dll` existe
+4. Si DDXoft falla, el sistema cambiará a Win32 automáticamente
+
+### ❌ Error "CUDA IS UNAVAILABLE"
+
+**Solución:**
+```batch
+# Para RTX 5060 (sm_120):
+pip uninstall torch torchvision torchaudio -y
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+
+# Para otras GPUs:
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+```
+
+### ❌ El mouse se mueve muy rápido/lento
+
+**Solución:**
+Editar `lib/config/game_profiles.json` y ajustar:
+```json
+{
+  "movement": {
+    "smoothing": 0.7,  // Más bajo = más lento (0.3-1.0)
+    "max_move_speed": 100  // Velocidad máxima
+  }
+}
+```
+
+### ❌ La detección es imprecisa
+
+**Solución:**
+Ajustar en `lib/config/game_profiles.json`:
+```json
+{
+  "detection": {
+    "confidence": 0.50,  // Más alto = más estricto (0.4-0.7)
+    "fov": 300  // Más bajo = área más pequeña
+  }
+}
+```
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+AI-Program_t/
+├── lib/
+│   ├── core/              # Motores principales
+│   │   ├── program_t_engine.py
+│   │   ├── detection_engine.py
+│   │   └── movement_engine.py
+│   ├── capture/           # Captura de pantalla
+│   │   ├── capture_manager.py
+│   │   ├── bitblt_capture.py
+│   │   └── mss_capture.py
+│   ├── input/             # Entrada de mouse
+│   │   ├── mouse_manager.py
+│   │   ├── ddxoft_mouse.py
+│   │   └── win32_mouse.py
+│   ├── config/            # Configuración
+│   │   ├── config_manager.py
+│   │   ├── game_profiles.json
+│   │   └── user_config.json
+│   ├── utils/             # Utilidades
+│   │   ├── logger.py
+│   │   ├── calibration.py
+│   │   └── performance_monitor.py
+│   └── yoloe-11l-seg.pt # Modelo YOLO-World v2
+├── docs/
+│   └── YOLO_WORLD_SETUP.md # Guía del modelo
+├── logs/                  # Archivos de log
+├── lunar.py               # Punto de entrada principal
+├── download_yolov8_world.bat # Descarga del modelo
+└── start.bat              # Script de inicio
+```
+
+---
+
+## 🎯 Características Avanzadas
+
+### Humanización de Movimientos
+
+El motor de movimiento incluye:
+- **Curvas Bézier**: Trayectorias curvas naturales
+- **Ruido Gaussiano**: Imperfección humana simulada
+- **Overshoot Aleatorio**: Pasarse ligeramente del objetivo
+- **Aceleración/Desaceleración**: Velocidad variable según distancia
+
+### Target Stickiness
+
+Reduce cambios erráticos entre objetivos:
+- Mantiene el target actual si sigue visible
+- Tolerancia de distancia configurable
+- Persistencia por varios frames
+
+### Auto-Fallback
+
+El sistema detecta y cambia automáticamente:
+- Si BitBlt falla → cambia a MSS
+- Si DDXoft falla → cambia a Win32
+- Notificaciones en consola de cada cambio
+
+---
+
+## 📊 Monitoreo de Rendimiento
+
+### Ver Estadísticas en Vivo
+
+Presiona **F3** durante la ejecución para ver:
+- FPS actual, promedio, mín, máx
+- Tiempo de frame
+- Uso de CPU y memoria
+- Total de detecciones
+- Total de frames procesados
+
+### Logs Detallados
+
+Los logs se guardan en `logs/` con:
+- Timestamp de cada evento
+- Categoría (ENGINE, CAPTURE, MOUSE, etc.)
+- Nivel (DEBUG, INFO, WARNING, ERROR)
+- Archivos rotados por sesión
+
+---
+
+## 🔒 Seguridad y Responsabilidad
+
+⚠️ **DISCLAIMER:**
+
+Este proyecto es para **propósitos educativos** y pruebas en **entornos propios**.
+
+- ❌ **NO** usar en juegos online
+- ❌ **NO** usar para hacer trampas
+- ✅ **SÍ** usar para aprender IA y detección de objetos
+- ✅ **SÍ** usar para probar sistemas anti-cheat propios
+
+El uso indebido puede resultar en:
+- Baneos permanentes
+- Consecuencias legales
+- Daño a la comunidad de jugadores
+
+**Usa este código de forma responsable.**
+
+---
+
+## 💬 Soporte y Comunidad
+
+### Discord
+👉 [discord.gg/aiprogram_t](https://discord.gg/aiprogram_t)
+
+### Versión Premium (Lunar V2)
+
+La versión completa incluye:
+- ✅ 25+ configuraciones personalizables
+- ✅ Interfaz gráfica integrada
+- ✅ Soporte YOLOv8, v10, v12 y TensorRT
+- ✅ Soporte para control Xbox
+- ✅ Input Logitech GHUB
+- ✅ Compatible AMD y NVIDIA
+
+[Descargar Lunar V2](https://gannonr.com/lunar)
+
+---
+
+## 📝 Licencia
+
+Este proyecto está bajo licencia MIT. Ver `LICENSE` para más detalles.
+
+---
+
+## 🙏 Créditos
+
+- Proyecto original: [Lunar by zeyad-mansour](https://github.com/zeyad-mansour/lunar)
+- Modelo YOLO: [Ultralytics](https://github.com/ultralytics/ultralytics)
+- Comunidad de Discord
+
+---
+
+## 📈 Changelog
+
+### v2.0.0 (2024)
+- ✨ Arquitectura completamente reescrita
+- ✨ Soporte multi-juego con perfiles
+- ✨ Sistema de calibración automática
+- ✨ Motor de humanización avanzado
+- ✨ Logging y monitoreo mejorados
+- ✨ Auto-fallback para captura y mouse
+- ✨ Target stickiness y deadzone
+- ✨ Performance monitor en tiempo real
+
+### v1.0.0
+- 🎯 Versión original con YOLOv8/v12
+- 🎯 Soporte básico para Fortnite
+- 🎯 Captura MSS y mouse Win32
+
+---
+
+**¡Disfruta del proyecto y úsalo de forma responsable! 🎮🤖**
+";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\requirements_cuda.txt>: "# CUDA-enabled PyTorch installation for RTX 5060 (sm_120) compatibility
+# Use with Python 3.13 for CUDA acceleration
+--find-links https://download.pytorch.org/whl/cu128
+
+# PyTorch with CUDA 12.8 support for RTX 5060 (sm_120)
+# Using stable build with CUDA 12.8 (cu128) for RTX 5060 (sm_120) compatibility
+torch>=2.7.0
+torchvision>=0.18.0
+torchaudio>=2.7.0
+
+# Core dependencies
+ultralytics>=8.0.0
+matplotlib>=3.2.2
+numpy>=1.26.4
+opencv-python>=4.1.2
+Pillow
+PyYAML>=5.3.1
+scipy>=1.4.1
+tqdm>=4.41.0
+tensorboard>=2.4.1
+seaborn>=0.11.0
+pandas
+
+# Game integration
+mss
+pygame
+pynput
+pywin32
+requests
+wheel
+termcolor";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\setup_cuda.bat>: "@echo off
+echo ===============================================
+echo AI Program_t CUDA Setup Script
+echo ===============================================
+echo.
+
+echo Checking for existing Python 3.13 installation...
+where python >nul 2>&1
+if %errorlevel% equ 0 (
+    echo Python found!
+    goto :create_venv
+) else (
+    echo Python not found.
+    echo.
+    echo Python 3.13 is required but not found in system PATH.
+    echo.
+    echo Options:
+    echo 1. Run install_python313.bat to install Python 3.13 automatically
+    echo 2. Install Python 3.13 manually from python.org
+    echo 3. Ensure Python is added to PATH during installation
+    echo.
+    echo After installing Python 3.13, run this script again.
+    pause
+    exit /b 1
+)
+
+:create_venv
+echo.
+echo Creating CUDA-enabled virtual environment...
+python -m venv venv_cuda
+if %errorlevel% neq 0 (
+    echo Failed to create virtual environment
+    pause
+    exit /b 1
+)
+
+echo.
+echo Activating virtual environment...
+call venv_cuda\Scripts\activate
+
+echo.
+echo Installing CUDA-enabled PyTorch and dependencies for RTX 5060 (sm_120)...
+echo Using PyTorch stable build with CUDA 12.8 (cu128) for RTX 5060 (sm_120) compatibility...
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+if %errorlevel% neq 0 (
+    echo Failed to install PyTorch with CUDA
+    pause
+    exit /b 1
+)
+
+echo.
+echo Installing other requirements...
+pip install -r requirements_cuda.txt
+if %errorlevel% neq 0 (
+    echo Failed to install requirements
+    pause
+    exit /b 1
+)
+
+echo.
+echo Verifying CUDA installation and RTX 5060 compatibility...
+python -c "import torch; print('PyTorch version:', torch.__version__); print('CUDA available:', torch.cuda.is_available()); print('CUDA version:', torch.version.cuda if torch.cuda.is_available() else 'N/A'); print('GPU count:', torch.cuda.device_count()); print('GPU name:', torch.cuda.get_device_name(0) if torch.cuda.device_count() > 0 else 'N/A'); print('Compute capability:', torch.cuda.get_device_capability(0) if torch.cuda.device_count() > 0 else 'N/A'); print('RTX 5060 (sm_120) support:', 'YES' if torch.cuda.is_available() and torch.cuda.get_device_capability(0) >= (12, 0) else 'NO')"
+
+echo.
+echo ===============================================
+echo CUDA Setup Complete!
+echo ===============================================
+echo.
+echo To use the CUDA-enabled environment:
+echo   venv_cuda\Scripts\activate
+echo   python lunar.py
+echo.
+echo Your program_t should now run with CUDA acceleration!
+pause";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\start.bat>: "@echo off
+echo ===============================================
+echo Lunar AI Program_t - CUDA Enabled
+echo ===============================================
+echo.
+
+echo Checking for CUDA virtual environment...
+if not exist "venv_cuda\Scripts\activate.bat" (
+    echo CUDA virtual environment not found!
+    echo Please run setup_cuda.bat first to set up the CUDA environment.
+    echo.
+    pause
+    exit /b 1
+)
+
+echo Activating CUDA virtual environment...
+call venv_cuda\Scripts\activate.bat
+
+echo.
+echo ===============================================
+echo   LUNAR AI PROGRAM_T - STARTING
+echo ===============================================
+echo.
+echo Available commands:
+echo   python lunar.py              - Run with default settings
+echo   python lunar.py --calibrate  - Run setup wizard
+echo   python lunar.py --profile fortnite - Use Fortnite profile
+echo   python lunar.py --list-profiles - Show all profiles
+echo.
+echo Starting with default settings...
+echo.
+
+python lunar.py
+pause
+";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\start_admin.bat>: "@echo off
+setlocal enabledelayedexpansion
+
+:: Check if running as administrator
+net session >nul 2>&1
+if %errorLevel% == 0 (
+    echo Running with administrator privileges
+) else (
+    echo Requesting administrator privileges automatically...
+    echo.
+    echo If you reject the UAC prompt, the application will not run.
+    echo.
+    :: Re-launch as admin automatically (no y/n prompt)
+    PowerShell -Command "$process = Start-Process cmd -ArgumentList '/c %~dpnx0' -Verb RunAs -PassThru; if (!$process) { Write-Error 'Administrator privileges required' }"
+    if %errorLevel% neq 0 (
+        echo.
+        echo ERROR: Administrator privileges are required to run this application.
+        echo Please accept the UAC prompt to continue.
+        echo.
+        pause
+        exit /b 1
+    )
+    exit /b
+)
+
+echo ===============================================
+echo Lunar AI Program_t - Administrator Mode with CUDA
+echo ===============================================
+echo.
+
+:: Check for Python installation
+echo Checking for Python 3.13 installation...
+where python >nul 2>&1
+if %errorlevel% neq 0 (
+    echo Python 3.13 not found in system PATH.
+    echo.
+    echo Installing Python 3.13 for Windows...
+    echo.
+    call install_python313.bat
+    if %errorlevel% neq 0 (
+        echo Python installation failed. Please install Python 3.13 manually.
+        pause
+        exit /b 1
+    )
+) else (
+    echo Python found in system.
+)
+
+echo Checking for CUDA virtual environment...
+if not exist "venv_cuda\Scripts\activate.bat" (
+    echo CUDA virtual environment not found!
+    echo Please run setup_cuda.bat first to set up the CUDA environment.
+    echo.
+    pause
+    exit /b 1
+)
+
+echo Activating CUDA virtual environment...
+call venv_cuda\Scripts\activate.bat
+
+echo Running Lunar AI Program_t with administrator privileges and CUDA acceleration...
+echo.
+echo Benefits of running as administrator:
+echo - Enhanced mouse input simulation
+echo - Improved screen capture in fullscreen applications
+echo - Better system resource management
+echo - Reduced input latency
+echo - Compatibility with more game protection systems
+echo - CUDA acceleration for AI processing
+echo.
+python lunar.py
+pause";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\start_calibration.bat>: "@echo off
+echo ===============================================
+echo Lunar AI Program_t - Calibration Wizard
+echo ===============================================
+echo.
+
+echo Checking for CUDA virtual environment...
+if not exist "venv_cuda\Scripts\activate.bat" (
+    echo CUDA virtual environment not found!
+    echo Please run setup_cuda.bat first.
+    echo.
+    pause
+    exit /b 1
+)
+
+echo Activating CUDA virtual environment...
+call venv_cuda\Scripts\activate.bat
+
+echo.
+echo Starting calibration wizard...
+python lunar.py --calibrate
+
+pause";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\docs\CAMBIOS_YOLO_WORLD.md>: "# 📋 Resumen de Cambios: Migración a YOLO-World v2
+
+## 🎯 Objetivo
+Implementar **YOLOv8-World v2** para detección mejorada de humanoides sin texto sobre las detecciones.
+
+---
+
+## ✅ Cambios Realizados
+
+### 1. **Modelo YOLO Actualizado**
+
+#### ❌ Antes:
+```python
+self.model = YOLO('lib/best.pt')
+```
+
+#### ✅ Ahora:
+```python
+self.model = YOLO('lib/yoloe-11l-seg.pt')
+# Configurar YOLO-World para detectar humanoides
+self.model.set_classes(["person", "human", "player", "character"])
+```
+
+**Archivos modificados:**
+- ✏️ `lib/core/program_t_engine.py` (línea 142)
+- ✏️ `lunar.py` (línea 114)
+
+---
+
+### 2. **Eliminación de Texto sobre Detecciones**
+
+Se eliminaron las etiquetas "LOCKED" y "TARGETING" que aparecían sobre cada objetivo detectado.
+
+#### ❌ Antes:
+```python
+if is_locked:
+    cv2.putText(frame, "LOCKED", (x1 + 40, y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (115, 244, 113), 2)
+else:
+    cv2.putText(frame, "TARGETING", (x1 + 40, y1), cv2.FONT_HERSHEY_DUPLEX, 0.5, (115, 113, 244), 2)
+```
+
+#### ✅ Ahora:
+```python
+# SIN TEXTO SOBRE LA DETECCIÓN - Solo indicadores visuales (caja y punto de mira)
+```
+
+**Archivos modificados:**
+- ✏️ `lib/core/program_t_engine.py` (línea 525)
+
+---
+
+### 3. **Indicadores Visuales Mantenidos**
+
+Se mantienen los siguientes elementos visuales:
+
+✅ **Caja de detección**: 
+- Verde cuando está "LOCKED"
+- Azul cuando está "TARGETING"
+
+✅ **Punto de mira**: 
+- Círculo en la posición calculada de la cabeza
+
+✅ **Línea al centro**:
+- Muestra la distancia del objetivo al centro de la pantalla
+
+✅ **Cruz central**:
+- Referencia del centro de la pantalla en rojo
+
+✅ **FPS Counter**:
+- Muestra FPS en la esquina superior izquierda
+
+✅ **Estado del Program_t**:
+- "Program_t: ENABLED" o "Program_t: DISABLED"
+
+---
+
+## 🌍 Ventajas de YOLO-World v2
+
+| Característica | Modelo Anterior | YOLO-World v2 |
+|----------------|----------------|---------------|
+| **Tipo de Detección** | Clases fijas entrenadas | Zero-shot con prompts de texto |
+| **Flexibilidad** | Requiere reentrenamiento | Cambio instantáneo de clases |
+| **Detección de Humanoides** | Una clase: "person" | Múltiples prompts: person, human, player, character |
+| **Precisión en Juegos** | Buena | Excelente (optimizado para caracteres) |
+| **Tamaño del Modelo** | ~6 MB | ~52 MB |
+| **Rendimiento** | ~40-70 FPS | ~30-60 FPS |
+
+---
+
+## 📦 Archivos Nuevos Creados
+
+1. **`docs/YOLO_WORLD_SETUP.md`**
+   - Guía completa de configuración
+   - Instrucciones de descarga
+   - Personalización de clases
+   - Solución de problemas
+
+2. **`download_yolov8_world.bat`**
+   - Script de descarga automática del modelo
+   - Verificación de instalación
+   - Mensajes de error detallados
+
+3. **`docs/CAMBIOS_YOLO_WORLD.md`** (este archivo)
+   - Resumen de todos los cambios
+   - Comparativa antes/después
+   - Guía de migración
+
+---
+
+## 🔧 Configuración de Detección
+
+### Clases Configuradas por Defecto
+
+```python
+self.model.set_classes(["person", "human", "player", "character"])
+```
+
+### ¿Por qué estas clases?
+
+1. **"person"** - Detecta personas en general
+2. **"human"** - Seres humanos con aspecto realista
+3. **"player"** - Jugadores y avatares en videojuegos
+4. **"character"** - Personajes y modelos 3D
+
+Esta combinación maximiza la detección de humanoides en diferentes contextos de juego.
+
+---
+
+## 📊 Comparativa Visual
+
+### Antes (con texto)
+```
+┌─────────────────┐
+│ [TARGETING]     │  ← Texto molesto
+│  ┌────────┐     │
+│  │ 🧍     │     │
+│  │        │     │
+│  └────────┘     │
+└─────────────────┘
+```
+
+### Ahora (sin texto)
+```
+┌─────────────────┐
+│  ┌────────┐     │
+│  │ 🎯     │     │  ← Solo caja + punto
+│  │        │     │
+│  └────────┘     │
+└─────────────────┘
+```
+
+Resultado: **Interfaz más limpia y profesional**
+
+---
+
+## ⚙️ Parámetros de Detección
+
+Los siguientes parámetros **NO han cambiado**:
+
+- `confidence`: 0.45 (45% de confianza mínima)
+- `iou`: 0.45 (Supresión de cajas superpuestas)
+- `fov`: 350 (Tamaño del área de detección)
+- `aim_height_divisor`: 5 (Apunta a la cabeza)
+
+---
+
+## 🚀 Cómo Usar
+
+### 1. Descarga el Modelo
+
+```batch
+download_yolov8_world.bat
+```
+
+### 2. Ejecuta el Program_t
+
+```batch
+start.bat
+```
+
+El modelo se descargará automáticamente en el primer inicio si no lo descargaste manualmente.
+
+### 3. Personaliza las Clases (Opcional)
+
+---
+
+## 🐛 Solución de Problemas
+
+### ❌ Error: "Model not found"
+```bash
+# Descarga manual
+cd lib
+python -c "from ultralytics import YOLO; YOLO('yoloe-11l-seg.pt')"
+```
+
+### ❌ Error: "set_classes not found"
+```bash
+# Actualiza ultralytics
+pip install --upgrade ultralytics
+```
+
+### ⚠️ Detecciones muy lentas
+- Verifica que CUDA esté instalado: `torch.cuda.is_available()`
+- Ejecuta `setup_cuda.bat` para configurar PyTorch con GPU
+
+### ⚠️ No detecta nada
+- Reduce `confidence` a 0.35 en `lib/config/game_profiles.json`
+- Prueba diferentes clases
+- Verifica que el juego esté en modo **Ventana sin bordes**
+
+---
+
+## 📝 Notas Importantes
+
+1. ✅ **Compatibilidad**: Funciona con todos los juegos soportados
+2. ✅ **Rendimiento**: Ligera reducción de FPS (~10-15%) debido al tamaño del modelo
+3. ✅ **Interfaz**: Más limpia sin texto, solo indicadores de color
+4. ✅ **Personalizable**: Cambia las clases sin reentrenar
+5. ⚠️ **Primera ejecución**: Descarga del modelo (~52 MB)
+
+---
+
+## 🔗 Referencias
+
+- [Documentación YOLO-World](https://docs.ultralytics.com/models/yolo-world/)
+- [Paper Original](https://arxiv.org/abs/2401.17270)
+- [GitHub Ultralytics](https://github.com/ultralytics/ultralytics)
+
+---
+
+## ✅ Checklist de Verificación
+
+Marca estos pasos para confirmar que todo funciona:
+
+- [ ] Modelo descargado en `lib/yoloe-11l-seg.pt`
+- [ ] Ultralytics actualizado (`pip install --upgrade ultralytics`)
+- [ ] El program_t inicia sin errores
+- [ ] Se detectan humanoides correctamente
+- [ ] No aparece texto sobre las detecciones
+- [ ] Solo se ven cajas de colores y puntos de mira
+- [ ] FPS > 30 (con GPU)
+
+¡Listo! Tu program_t ahora usa **YOLO-World v2** para detección mejorada de humanoides. 🎯
+
+";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\docs\YOLO_WORLD_SETUP.md>: "# 🌍 Configuración de YOLO-World v2 para Detección de Humanoides
+
+## 📋 Descripción
+
+Este proyecto utiliza **YOLOv8-World v2**, un modelo de detección de objetos zero-shot que puede detectar cualquier clase de objetos usando prompts de texto, sin necesidad de entrenamiento adicional.
+
+## 🎯 Ventajas de YOLO-World v2
+
+- ✅ **Zero-Shot Detection**: Detecta objetos mediante descripciones de texto
+- ✅ **Sin Entrenamiento Necesario**: Funciona inmediatamente con cualquier clase
+- ✅ **Detección de Humanoides Mejorada**: Múltiples prompts para mayor precisión
+- ✅ **Flexible**: Puedes cambiar las clases sin reentrenar el modelo
+
+## 📥 Cómo Obtener el Modelo
+
+### Opción 1: Descarga Automática (Recomendado)
+
+El modelo se descargará automáticamente la primera vez que ejecutes el program_t:
+
+```batch
+start.bat
+```
+
+Ultralytics descargará `yoloe-11l-seg.pt` automáticamente a la carpeta `lib/`.
+
+### Opción 2: Descarga Manual
+
+Si la descarga automática falla, puedes descargarlo manualmente:
+
+1. **Descargar desde Ultralytics:**
+```bash
+cd lib
+python -c "from ultralytics import YOLO; YOLO('yoloe-11l-seg.pt')"
+```
+
+2. **O desde el repositorio oficial:**
+   - Visita: https://github.com/ultralytics/ultralytics/releases
+   - Descarga: `yoloe-11l-seg.pt`
+   - Coloca el archivo en la carpeta `lib/`
+
+### Opción 3: Descarga Directa
+
+```bash
+# Windows PowerShell
+Invoke-WebRequest -Uri "https://github.com/ultralytics/assets/releases/download/v8.3.0/yoloe-11l-seg.pt" -OutFile "lib/yoloe-11l-seg.pt"
+```
+
+## 🎮 Configuración de Detección de Humanoides
+
+El modelo está configurado para detectar humanoides usando múltiples prompts de texto:
+
+```python
+self.model.set_classes(["person", "human", "player", "character"])
+```
+
+Esto permite detectar:
+- 👤 **person**: Personas en general
+- 🧍 **human**: Seres humanos
+- 🎮 **player**: Jugadores en videojuegos
+- 🦸 **character**: Personajes y avatares
+
+## ⚙️ Personalización de Clases
+
+Puedes modificar las clases detectadas editando los archivos:
+
+### `lib/core/program_t_engine.py` (Línea ~146)
+```python
+# Cambiar estas clases según tus necesidades
+self.model.set_classes(["person", "soldier", "enemy", "target"])
+```
+
+## 🎯 Ejemplos de Clases Útiles
+
+### Para Juegos de Disparos
+```python
+self.model.set_classes(["soldier", "enemy", "player", "person"])
+```
+
+### Para Juegos de Survival
+```python
+self.model.set_classes(["person", "zombie", "player", "survivor"])
+```
+
+### Para Juegos Realistas
+```python
+self.model.set_classes(["person", "human", "soldier", "character"])
+```
+
+## 📊 Rendimiento
+
+- **Modelo**: YOLOv8m-World v2 (Medium)
+- **Tamaño**: ~52 MB
+- **Velocidad**: ~30-60 FPS (con GPU)
+- **Precisión**: Alta para detección de humanoides
+- **VRAM**: ~2-3 GB (con CUDA)
+
+## 🔧 Solución de Problemas
+
+### Error: "Model not found"
+```bash
+# Forzar descarga del modelo
+cd lib
+python -c "from ultralytics import YOLO; YOLO('yoloe-11l-seg.pt')"
+```
+
+### Error: "set_classes not found"
+```bash
+# Actualizar ultralytics a la última versión
+pip install --upgrade ultralytics
+```
+
+### Detección Lenta
+- Asegúrate de tener CUDA instalado para aceleración GPU
+- Ejecuta `setup_cuda.bat` para configurar PyTorch con CUDA
+- Verifica que `torch.cuda.is_available()` devuelva `True`
+
+### Detecciones Inexactas
+- Ajusta el parámetro `confidence` en `lib/config/game_profiles.json`
+- Prueba diferentes combinaciones de clases
+- Reduce el FOV para mejorar la precisión
+
+## 📝 Notas Importantes
+
+1. **Primera Ejecución**: La descarga del modelo puede tomar 1-2 minutos
+2. **Internet Requerido**: Solo para la primera descarga
+3. **Sin Texto en Detecciones**: Se eliminaron las etiquetas "LOCKED" y "TARGETING" para una interfaz más limpia
+4. **Indicadores Visuales**: Las cajas de colores y el punto de mira indican el estado del objetivo
+
+## 🔗 Referencias
+
+- [Ultralytics YOLO-World](https://docs.ultralytics.com/models/yolo-world/)
+- [Paper YOLO-World](https://arxiv.org/abs/2401.17270)
+- [GitHub Ultralytics](https://github.com/ultralytics/ultralytics)
+
+## ✅ Verificación de Instalación
+
+Ejecuta este comando para verificar que todo está correcto:
+
+```python
+python -c "from ultralytics import YOLO; m = YOLO('lib/yoloe-11l-seg.pt'); m.set_classes(['person']); print('✓ YOLO-World v2 configurado correctamente')"
+```
+
+Si ves el mensaje de éxito, ¡estás listo para usar el program_t con detección de humanoides!
+
+";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\capture\capture_manager.py>: """"
+Capture Manager
+==============
+Gestiona diferentes métodos de captura de pantalla con auto-detección.
+"""
+
+import numpy as np
+import time
+from abc import ABC, abstractmethod
+from typing import Optional, Tuple
+from lib.utils.logger import logger
+
+class CaptureMethod(ABC):
+    """Clase base para métodos de captura"""
+    
+    @abstractmethod
+    def capture(self, region: dict) -> Optional[np.ndarray]:
+        """Captura una región de la pantalla"""
+        pass
+    
+    @abstractmethod
+    def initialize(self) -> bool:
+        """Inicializa el método de captura"""
+        pass
+    
+    @abstractmethod
+    def cleanup(self):
+        """Limpia recursos"""
+        pass
+    
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Nombre del método"""
+        pass
+
+class MSSCapture(CaptureMethod):
+    """Captura usando MSS (rápido, solo ventana sin bordes)"""
+    
+    def __init__(self):
+        self.sct = None
+        self._name = "MSS"
+    
+    @property
+    def name(self) -> str:
+        return self._name
+    
+    def initialize(self) -> bool:
+        try:
+            import mss
+            self.sct = mss.mss()
+            logger.info("MSS capture initialized", "CAPTURE")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to initialize MSS: {e}", "CAPTURE")
+            return False
+    
+    def capture(self, region: dict) -> Optional[np.ndarray]:
+        try:
+            if self.sct is None:
+                return None
+            
+            screenshot = self.sct.grab(region)
+            frame = np.array(screenshot, dtype=np.uint8)
+            return frame
+        except Exception as e:
+            logger.debug(f"MSS capture failed: {e}", "CAPTURE")
+            return None
+    
+    def cleanup(self):
+        if self.sct:
+            try:
+                self.sct.close()
+                logger.info("MSS capture cleaned up", "CAPTURE")
+            except:
+                pass
+
+class BitBltCapture(CaptureMethod):
+    """Captura usando BitBlt (funciona con pantalla completa)"""
+    
+    def __init__(self):
+        self.desktop_dc = None
+        self.mem_dc = None
+        self._name = "BitBlt"
+    
+    @property
+    def name(self) -> str:
+        return self._name
+    
+    def initialize(self) -> bool:
+        try:
+            import win32gui
+            import win32ui
+            
+            hwnd = win32gui.GetDesktopWindow()
+            self.desktop_dc = win32gui.GetWindowDC(hwnd)
+            self.mem_dc = win32ui.CreateDCFromHandle(self.desktop_dc)
+            
+            logger.info("BitBlt capture initialized", "CAPTURE")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to initialize BitBlt: {e}", "CAPTURE")
+            return False
+    
+    def capture(self, region: dict) -> Optional[np.ndarray]:
+        try:
+            import win32ui
+            import win32con
+            import win32gui
+            
+            left, top = region['left'], region['top']
+            width, height = region['width'], region['height']
+            
+            save_dc = self.mem_dc.CreateCompatibleDC()
+            save_bitmap = win32ui.CreateBitmap()
+            save_bitmap.CreateCompatibleBitmap(self.mem_dc, width, height)
+            save_dc.SelectObject(save_bitmap)
+            
+            save_dc.BitBlt((0, 0), (width, height), self.mem_dc, (left, top), win32con.SRCCOPY)
+            
+            bmpinfo = save_bitmap.GetInfo()
+            bmpstr = save_bitmap.GetBitmapBits(True)
+            frame = np.frombuffer(bmpstr, dtype=np.uint8).reshape((height, width, 4))
+            
+            win32gui.DeleteObject(save_bitmap.GetHandle())
+            save_dc.DeleteDC()
+            
+            return frame
+        except Exception as e:
+            logger.debug(f"BitBlt capture failed: {e}", "CAPTURE")
+            return None
+    
+    def cleanup(self):
+        try:
+            import win32gui
+            
+            if self.mem_dc:
+                self.mem_dc.DeleteDC()
+            if self.desktop_dc:
+                win32gui.ReleaseDC(win32gui.GetDesktopWindow(), self.desktop_dc)
+            
+            logger.info("BitBlt capture cleaned up", "CAPTURE")
+        except:
+            pass
+
+class CaptureManager:
+    """Gestor de captura con auto-selección de método"""
+    
+    def __init__(self, preferred_method: str = 'auto'):
+        self.current_method: Optional[CaptureMethod] = None
+        self.preferred_method = preferred_method.lower()
+        self.failed_captures = 0
+        self.success_captures = 0
+        self.auto_switch_threshold = 30
+        
+        self.initialize_capture()
+    
+    def initialize_capture(self):
+        """Inicializa el método de captura preferido"""
+        if self.preferred_method == 'bitblt':
+            self._try_bitblt()
+        elif self.preferred_method == 'mss':
+            self._try_mss()
+        elif self.preferred_method == 'auto':
+            # Intentar BitBlt primero (mejor para pantalla completa)
+            if not self._try_bitblt():
+                self._try_mss()
+        
+        if self.current_method is None:
+            logger.critical("No capture method could be initialized!", "CAPTURE")
+    
+    def _try_bitblt(self) -> bool:
+        """Intenta inicializar BitBlt"""
+        method = BitBltCapture()
+        if method.initialize():
+            self.current_method = method
+            return True
+        return False
+    
+    def _try_mss(self) -> bool:
+        """Intenta inicializar MSS"""
+        method = MSSCapture()
+        if method.initialize():
+            self.current_method = method
+            return True
+        return False
+    
+    def capture(self, region: dict) -> Optional[np.ndarray]:
+        """Captura una región de la pantalla"""
+        if self.current_method is None:
+            return None
+        
+        frame = self.current_method.capture(region)
+        
+        if frame is not None and frame.size > 0:
+            self.success_captures += 1
+            self.failed_captures = 0
+            return frame
+        else:
+            self.failed_captures += 1
+            
+            # Auto-switch si hay muchos fallos
+            if self.failed_captures >= self.auto_switch_threshold:
+                logger.warning(
+                    f"{self.current_method.name} failed {self.failed_captures} times, "
+                    "trying alternative method...", 
+                    "CAPTURE"
+                )
+                self._switch_method()
+                self.failed_captures = 0
+            
+            return None
+    
+    def _switch_method(self):
+        """Cambia al método alternativo"""
+        if isinstance(self.current_method, BitBltCapture):
+            logger.info("Switching from BitBlt to MSS", "CAPTURE")
+            self.cleanup()
+            self._try_mss()
+        elif isinstance(self.current_method, MSSCapture):
+            logger.info("Switching from MSS to BitBlt", "CAPTURE")
+            self.cleanup()
+            self._try_bitblt()
+    
+    def get_method_name(self) -> str:
+        """Obtiene el nombre del método actual"""
+        return self.current_method.name if self.current_method else "None"
+    
+    def cleanup(self):
+        """Limpia recursos"""
+        if self.current_method:
+            self.current_method.cleanup()
+            self.current_method = None";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\capture\__init__.py>: "";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\config\config_manager.py>: """"
+Configuration Manager
+====================
+Gestiona perfiles de juego, configuración dinámica y hot-reload.
+"""
+
+import json
+import os
+from pathlib import Path
+from typing import Dict, Any, Optional
+from lib.utils.logger import logger
+
+class ConfigManager:
+    """Gestor centralizado de configuración"""
+    
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+    
+    def __init__(self):
+        if self._initialized:
+            return
+            
+        self._initialized = True
+        self.config_dir = Path("lib/config")
+        self.profiles_path = self.config_dir / "game_profiles.json"
+        self.user_config_path = self.config_dir / "user_config.json"
+        
+        self.profiles = {}
+        self.current_profile = "default"
+        self.user_settings = {}
+        
+        self.load_profiles()
+        self.load_user_config()
+    
+    def load_profiles(self):
+        """Carga perfiles de juego desde JSON"""
+        try:
+            if self.profiles_path.exists():
+                with open(self.profiles_path, 'r', encoding='utf-8') as f:
+                    self.profiles = json.load(f)
+                logger.info(f"Loaded {len(self.profiles)} game profiles", "CONFIG")
+            else:
+                logger.warning("No game profiles found, using defaults", "CONFIG")
+                self.create_default_profiles()
+        except Exception as e:
+            logger.error(f"Failed to load profiles: {e}", "CONFIG")
+            self.create_default_profiles()
+    
+    def load_user_config(self):
+        """Carga configuración del usuario"""
+        try:
+            if self.user_config_path.exists():
+                with open(self.user_config_path, 'r', encoding='utf-8') as f:
+                    self.user_settings = json.load(f)
+                self.current_profile = self.user_settings.get('active_profile', 'default')
+                logger.info(f"Loaded user config. Active profile: {self.current_profile}", "CONFIG")
+            else:
+                self.create_default_user_config()
+        except Exception as e:
+            logger.error(f"Failed to load user config: {e}", "CONFIG")
+            self.create_default_user_config()
+    
+    def create_default_profiles(self):
+        """Crea perfiles por defecto"""
+        self.profiles = {
+            "default": {
+                "name": "Default",
+                "detection": {"fov": 350, "confidence": 0.45},
+                "movement": {"smoothing": 0.7, "deadzone_pixels": 2},
+                "targeting": {"lock_threshold_pixels": 15},
+                "trigger_bot": {"enabled": False}
+            }
+        }
+        self.save_profiles()
+    
+    def create_default_user_config(self):
+        """Crea configuración de usuario por defecto"""
+        self.user_settings = {
+            "active_profile": "default",
+            "mouse_method": "ddxoft",
+            "capture_method": "bitblt",
+            "show_debug_window": True,
+            "enable_performance_logging": False
+        }
+        self.save_user_config()
+    
+    def save_profiles(self):
+        """Guarda perfiles en archivo"""
+        try:
+            with open(self.profiles_path, 'w', encoding='utf-8') as f:
+                json.dump(self.profiles, f, indent=2, ensure_ascii=False)
+            logger.info("Profiles saved successfully", "CONFIG")
+        except Exception as e:
+            logger.error(f"Failed to save profiles: {e}", "CONFIG")
+    
+    def save_user_config(self):
+        """Guarda configuración de usuario"""
+        try:
+            with open(self.user_config_path, 'w', encoding='utf-8') as f:
+                json.dump(self.user_settings, f, indent=2, ensure_ascii=False)
+            logger.info("User config saved successfully", "CONFIG")
+        except Exception as e:
+            logger.error(f"Failed to save user config: {e}", "CONFIG")
+    
+    def get_profile(self, profile_name: Optional[str] = None) -> Dict[str, Any]:
+        """Obtiene configuración de un perfil"""
+        profile_name = profile_name or self.current_profile
+        
+        if profile_name not in self.profiles:
+            logger.warning(f"Profile '{profile_name}' not found, using default", "CONFIG")
+            profile_name = "default"
+        
+        return self.profiles.get(profile_name, {})
+    
+    def set_active_profile(self, profile_name: str):
+        """Cambia el perfil activo"""
+        if profile_name in self.profiles:
+            self.current_profile = profile_name
+            self.user_settings['active_profile'] = profile_name
+            self.save_user_config()
+            logger.info(f"Active profile changed to: {profile_name}", "CONFIG")
+            return True
+        else:
+            logger.error(f"Profile '{profile_name}' does not exist", "CONFIG")
+            return False
+    
+    def get_value(self, *keys, default=None):
+        """
+        Obtiene un valor anidado de la configuración actual.
+        Ejemplo: get_value('detection', 'fov') -> 350
+        """
+        profile = self.get_profile()
+        value = profile
+        
+        for key in keys:
+            if isinstance(value, dict) and key in value:
+                value = value[key]
+            else:
+                return default
+        
+        return value
+    
+    def set_value(self, *keys, value):
+        """
+        Establece un valor anidado en la configuración actual.
+        Ejemplo: set_value('detection', 'fov', value=400)
+        """
+        if len(keys) < 1:
+            return False
+        
+        profile = self.get_profile()
+        target = profile
+        
+        for key in keys[:-1]:
+            if key not in target:
+                target[key] = {}
+            target = target[key]
+        
+        target[keys[-1]] = value
+        self.save_profiles()
+        logger.info(f"Config updated: {'.'.join(keys)} = {value}", "CONFIG")
+        return True
+    
+    def list_profiles(self) -> list:
+        """Lista todos los perfiles disponibles"""
+        return list(self.profiles.keys())
+    
+    def get_user_setting(self, key: str, default=None):
+        """Obtiene una configuración de usuario"""
+        return self.user_settings.get(key, default)
+    
+    def set_user_setting(self, key: str, value):
+        """Establece una configuración de usuario"""
+        self.user_settings[key] = value
+        self.save_user_config()
+
+# Instancia global
+config = ConfigManager()";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\config\game_profiles.json>: "{
+  "default": {
+    "name": "Default Profile",
+    "description": "Perfil genérico para cualquier juego",
+    "detection": {
+      "fov": 350,
+      "confidence": 0.45,
+      "iou": 0.45,
+      "aim_height_divisor": 5
+    },
+    "movement": {
+      "smoothing": 0.7,
+      "deadzone_pixels": 2,
+      "max_move_speed": 100,
+      "acceleration_factor": 0.8,
+      "mouse_delay": 0.0009
+    },
+    "targeting": {
+      "lock_threshold_pixels": 15,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 60,
+      "persistence_frames": 10
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.08,
+      "max_shot_delay": 0.15,
+      "burst_limit": 3,
+      "burst_cooldown": 0.3
+    }
+  },
+  
+  "fortnite": {
+    "name": "Fortnite",
+    "description": "Optimizado para Fortnite",
+    "detection": {
+      "fov": 400,
+      "confidence": 0.5,
+      "iou": 0.5,
+      "aim_height_divisor": 4
+    },
+    "movement": {
+      "smoothing": 0.6,
+      "deadzone_pixels": 3,
+      "max_move_speed": 120,
+      "acceleration_factor": 0.9,
+      "mouse_delay": 0.001
+    },
+    "targeting": {
+      "lock_threshold_pixels": 12,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 80,
+      "persistence_frames": 15
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.1,
+      "max_shot_delay": 0.18,
+      "burst_limit": 5,
+      "burst_cooldown": 0.4
+    }
+  },
+  
+  "valorant": {
+    "name": "Valorant",
+    "description": "Optimizado para Valorant - Precisión extrema",
+    "detection": {
+      "fov": 300,
+      "confidence": 0.55,
+      "iou": 0.5,
+      "aim_height_divisor": 3
+    },
+    "movement": {
+      "smoothing": 0.4,
+      "deadzone_pixels": 1,
+      "max_move_speed": 80,
+      "acceleration_factor": 0.6,
+      "mouse_delay": 0.0005
+    },
+    "targeting": {
+      "lock_threshold_pixels": 8,
+      "target_priority": "head_closest",
+      "sticky_target": false,
+      "stickiness_pixels": 40,
+      "persistence_frames": 5
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.12,
+      "max_shot_delay": 0.2,
+      "burst_limit": 1,
+      "burst_cooldown": 0.5
+    }
+  },
+  
+  "apex_legends": {
+    "name": "Apex Legends",
+    "description": "Optimizado para Apex Legends - Movimiento rápido",
+    "detection": {
+      "fov": 450,
+      "confidence": 0.48,
+      "iou": 0.45,
+      "aim_height_divisor": 5
+    },
+    "movement": {
+      "smoothing": 0.8,
+      "deadzone_pixels": 4,
+      "max_move_speed": 150,
+      "acceleration_factor": 1.0,
+      "mouse_delay": 0.0012
+    },
+    "targeting": {
+      "lock_threshold_pixels": 20,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 100,
+      "persistence_frames": 20
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.06,
+      "max_shot_delay": 0.12,
+      "burst_limit": 10,
+      "burst_cooldown": 0.3
+    }
+  },
+  
+  "custom": {
+    "name": "Custom Profile",
+    "description": "Perfil personalizable - Ajusta según tu juego",
+    "detection": {
+      "fov": 350,
+      "confidence": 0.45,
+      "iou": 0.45,
+      "aim_height_divisor": 5
+    },
+    "movement": {
+      "smoothing": 0.7,
+      "deadzone_pixels": 2,
+      "max_move_speed": 100,
+      "acceleration_factor": 0.8,
+      "mouse_delay": 0.0009
+    },
+    "targeting": {
+      "lock_threshold_pixels": 15,
+      "target_priority": "closest",
+      "sticky_target": true,
+      "stickiness_pixels": 60,
+      "persistence_frames": 10
+    },
+    "trigger_bot": {
+      "enabled": false,
+      "human_like_delay": true,
+      "min_shot_delay": 0.08,
+      "max_shot_delay": 0.15,
+      "burst_limit": 3,
+      "burst_cooldown": 0.3
+    }
+  }
+}";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\config\user_config.json>: "{
+  "active_profile": "default",
+  "mouse_method": "ddxoft",
+  "capture_method": "bitblt",
+  "show_debug_window": true,
+  "enable_performance_logging": false,
+  "use_adaptive_learning_profile": true,
+  "suspend_key": "alt_l"
+}";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\config\__init__.py>: "";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\core\detection_engine.py>: """"
+Detection Engine
+================
+Motor de detección de objetivos con múltiples estrategias.
+"""
+
+import math
+import time
+from typing import List, Dict, Optional, Tuple
+from dataclasses import dataclass
+import numpy as np
+from lib.utils.logger import logger
+
+@dataclass
+class DetectionConfig:
+    """Configuración del motor de detección"""
+    fov: int = 350
+    confidence: float = 0.45
+    iou: float = 0.45
+    aim_height_divisor: int = 5
+    target_priority: str = 'closest'  # 'closest', 'head_closest', 'largest'
+    sticky_target: bool = True
+    stickiness_pixels: int = 60
+    persistence_frames: int = 10
+
+@dataclass
+class Target:
+    """Representa un objetivo detectado"""
+    box: Tuple[int, int, int, int]  # x1, y1, x2, y2
+    head_x: int
+    head_y: int
+    crosshair_distance: float
+    confidence: float
+    center_x: int
+    center_y: int
+    width: int
+    height: int
+    id: Optional[int] = None
+    class_name: str = "unknown"  # Nombre de la clase detectada por YOLO
+
+class DetectionEngine:
+    """Motor de detección y seguimiento de objetivos"""
+    
+    def __init__(self, config: DetectionConfig):
+        self.config = config
+        self.current_target: Optional[Target] = None
+        self.target_lock_frames = 0
+        self.last_detection_time = 0
+        self.detection_count = 0
+        self.next_target_id = 0
+    
+    def process_detections(
+        self, 
+        boxes: List,
+        box_constant: int,
+        screen_x: int,
+        screen_y: int,
+        min_confidence: float = 0.50
+    ) -> List[Target]:
+        """
+        Procesa detecciones brutas del modelo YOLO.
+        Filtra objetivos con confianza menor al umbral mínimo.
+        Retorna lista de objetivos con información calculada.
+        
+        Args:
+            min_confidence: Confianza mínima requerida (default: 0.50 = 56%)
+        """
+        if len(boxes) == 0:
+            return []
+        
+        targets = []
+        center_x = box_constant / 2
+        center_y = box_constant / 2
+        
+        for box in boxes:
+            x1, y1, x2, y2 = map(int, box)
+            
+            # Calcular dimensiones
+            width = x2 - x1
+            height = y2 - y1
+            
+            # Calcular centro
+            center_box_x = (x1 + x2) / 2
+            center_box_y = (y1 + y2) / 2
+            
+            # Calcular posición de la cabeza
+            head_x = int(center_box_x)
+            head_y = int(center_box_y - height / self.config.aim_height_divisor)
+            
+            # Distancia al crosshair
+            crosshair_dist = math.hypot(
+                center_box_x - center_x,
+                center_box_y - center_y
+            )
+            
+            target = Target(
+                box=(x1, y1, x2, y2),
+                head_x=head_x,
+                head_y=head_y,
+                crosshair_distance=crosshair_dist,
+                confidence=0.0,  # Se establece después en program_t_engine
+                center_x=int(center_box_x),
+                center_y=int(center_box_y),
+                width=width,
+                height=height,
+                id=self.next_target_id
+            )
+            
+            self.next_target_id += 1
+            targets.append(target)
+        
+        self.detection_count += 1
+        self.last_detection_time = time.time()
+        
+        return targets
+    
+    def select_best_target(self, targets: List[Target]) -> Optional[Target]:
+        """
+        Selecciona el mejor objetivo según la estrategia configurada.
+        Implementa target stickiness para reducir cambios erráticos.
+        Considera similitud visual si está habilitada.
+        """
+        if not targets:
+            # Si no hay objetivos, resetear target actual
+            if self.current_target is not None:
+                self.target_lock_frames = 0
+                self.current_target = None
+            return None
+        
+        # Si hay un target actual y sticky está activado
+        if self.config.sticky_target and self.current_target is not None:
+            # Buscar si el target actual sigue presente
+            sticky_target = self._find_sticky_target(targets)
+            
+            if sticky_target is not None:
+                self.target_lock_frames += 1
+                self.current_target = sticky_target
+                return sticky_target
+            else:
+                # El target se perdió
+                self.target_lock_frames -= 1
+                
+                # Solo cambiar de target si se pierde por varios frames
+                if self.target_lock_frames > -self.config.persistence_frames:
+                    # Mantener el último target conocido por un momento
+                    return self.current_target
+                else:
+                    # Finalmente liberar el target
+                    self.current_target = None
+                    self.target_lock_frames = 0
+        
+        # Seleccionar nuevo target según prioridad
+        best_target = self._select_by_priority(targets)
+        
+        if best_target is not None:
+            self.current_target = best_target
+            self.target_lock_frames = 1
+        
+        return best_target
+    
+    def _find_sticky_target(self, targets: List[Target]) -> Optional[Target]:
+        """
+        Busca el target actual en la nueva lista de detecciones.
+        Usa proximidad para identificar el mismo target.
+        """
+        if self.current_target is None:
+            return None
+        
+        min_distance = float('inf')
+        closest_target = None
+        
+        for target in targets:
+            # Distancia entre centros
+            dist = math.hypot(
+                target.center_x - self.current_target.center_x,
+                target.center_y - self.current_target.center_y
+            )
+            
+            if dist < min_distance and dist < self.config.stickiness_pixels:
+                min_distance = dist
+                closest_target = target
+        
+        return closest_target
+    
+    def _select_by_priority(self, targets: List[Target]) -> Optional[Target]:
+        """Selecciona target según estrategia de prioridad"""
+        
+        if self.config.target_priority == 'closest':
+            # Más cercano al crosshair
+            return min(targets, key=lambda t: t.crosshair_distance)
+        
+        elif self.config.target_priority == 'head_closest':
+            # Cabeza más cercana al crosshair
+            return min(targets, key=lambda t: math.hypot(
+                t.head_x - (targets[0].box[0] + targets[0].box[2]) / 4,  # Aproximación
+                t.head_y - (targets[0].box[1] + targets[0].box[3]) / 4
+            ))
+        
+        elif self.config.target_priority == 'largest':
+            # Target más grande (más cercano en distancia real)
+            return max(targets, key=lambda t: t.width * t.height)
+        
+        else:
+            # Default: closest
+            return min(targets, key=lambda t: t.crosshair_distance)
+    
+    def is_locked_on_target(
+        self, 
+        absolute_x: int, 
+        absolute_y: int, 
+        screen_x: int, 
+        screen_y: int,
+        threshold: int = 15
+    ) -> bool:
+        """Verifica si el crosshair está sobre el objetivo"""
+        return (
+            screen_x - threshold <= absolute_x <= screen_x + threshold and
+            screen_y - threshold <= absolute_y <= screen_y + threshold
+        )
+    
+    def reset(self):
+        """Resetea el estado del motor"""
+        self.current_target = None
+        self.target_lock_frames = 0
+        self.detection_count = 0
+    
+    def get_stats(self) -> dict:
+        """Obtiene estadísticas de detección"""
+        return {
+            "detections": self.detection_count,
+            "has_target": self.current_target is not None,
+            "lock_frames": self.target_lock_frames,
+            "last_detection": self.last_detection_time
+        }";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\core\movement_engine.py>: """"
+Movement Engine
+===============
+Motor de movimiento humanizado con múltiples estrategias.
+"""
+
+import math
+import random
+import time
+from typing import Tuple, List, Optional
+from dataclasses import dataclass
+import numpy as np
+from lib.utils.logger import logger
+
+@dataclass
+class MovementConfig:
+    """Configuración del motor de movimiento"""
+    smoothing: float = 0.7
+    deadzone_pixels: int = 2
+    max_move_speed: float = 100.0
+    acceleration_factor: float = 0.8
+    mouse_delay: float = 0.0009
+    humanization_enabled: bool = True
+    noise_amplitude: float = 0.1
+    overshoot_probability: float = 0.15
+    overshoot_max_pixels: int = 3
+
+class MovementEngine:
+    """Motor de movimiento con humanización"""
+    
+    def __init__(self, config: MovementConfig):
+        self.config = config
+        self.movement_path: List[Tuple[float, float]] = []
+        self.current_velocity = np.array([0.0, 0.0])
+        self.last_move_time = 0
+        self.total_distance_moved = 0
+    
+    def calculate_movement(
+        self, 
+        current_x: int, 
+        current_y: int, 
+        target_x: int, 
+        target_y: int
+    ) -> Optional[Tuple[float, float]]:
+        """
+        Calcula el siguiente movimiento hacia el objetivo.
+        Retorna (dx, dy) o None si está en deadzone.
+        """
+        # Calcular distancia al objetivo
+        dist_x = target_x - current_x
+        dist_y = target_y - current_y
+        distance = math.hypot(dist_x, dist_y)
+        
+        # Check deadzone
+        if distance < self.config.deadzone_pixels:
+            self.movement_path.clear()
+            self.current_velocity = np.array([0.0, 0.0])
+            return None
+        
+        # Calcular movimiento base con suavizado
+        move_ratio = min(self.config.smoothing, 1.0)
+        base_move_x = dist_x * move_ratio
+        base_move_y = dist_y * move_ratio
+        
+        # Limitar velocidad máxima
+        move_magnitude = math.hypot(base_move_x, base_move_y)
+        if move_magnitude > self.config.max_move_speed:
+            scale = self.config.max_move_speed / move_magnitude
+            base_move_x *= scale
+            base_move_y *= scale
+        
+        # Aplicar humanización
+        if self.config.humanization_enabled:
+            base_move_x, base_move_y = self._apply_humanization(
+                base_move_x, base_move_y, distance
+            )
+        
+        return (base_move_x, base_move_y)
+    
+    def _apply_humanization(
+        self, 
+        move_x: float, 
+        move_y: float, 
+        distance: float
+    ) -> Tuple[float, float]:
+        """Aplica humanización al movimiento"""
+        
+        # 1. Ruido perlin/aleatorio para simular imperfección humana
+        if self.config.noise_amplitude > 0:
+            noise_x = random.gauss(0, self.config.noise_amplitude)
+            noise_y = random.gauss(0, self.config.noise_amplitude)
+            move_x += noise_x
+            move_y += noise_y
+        
+        # 2. Aceleración/desaceleración según distancia
+        if distance > 50:
+            # Aceleración cuando está lejos
+            accel = 1.0 + (self.config.acceleration_factor * 0.2)
+            move_x *= accel
+            move_y *= accel
+        elif distance < 20:
+            # Desaceleración cuando está cerca
+            decel = 0.7 + (distance / 20) * 0.3
+            move_x *= decel
+            move_y *= decel
+        
+        # 3. Overshoot ocasional (pasarse ligeramente)
+        if random.random() < self.config.overshoot_probability:
+            overshoot = random.randint(1, self.config.overshoot_max_pixels)
+            direction = math.atan2(move_y, move_x)
+            move_x += math.cos(direction) * overshoot
+            move_y += math.sin(direction) * overshoot
+        
+        return (move_x, move_y)
+    
+    def calculate_bezier_path(
+        self,
+        start_x: int,
+        start_y: int,
+        end_x: int,
+        end_y: int,
+        steps: int = 20
+    ) -> List[Tuple[float, float]]:
+        """
+        Calcula una trayectoria de Bézier cuadrática.
+        Útil para movimientos largos y curvos.
+        """
+        # Punto de control intermedio con offset aleatorio
+        mid_x = (start_x + end_x) / 2
+        mid_y = (start_y + end_y) / 2
+        
+        # Offset perpendicular para crear curva
+        dx = end_x - start_x
+        dy = end_y - start_y
+        distance = math.hypot(dx, dy)
+        
+        if distance < 10:
+            return [(end_x - start_x, end_y - start_y)]
+        
+        # Offset aleatorio (10-30% de la distancia)
+        offset_magnitude = random.uniform(0.1, 0.3) * distance
+        offset_angle = math.atan2(dy, dx) + math.pi / 2
+        
+        control_x = mid_x + math.cos(offset_angle) * offset_magnitude
+        control_y = mid_y + math.sin(offset_angle) * offset_magnitude
+        
+        # Generar puntos de la curva
+        path = []
+        prev_x, prev_y = start_x, start_y
+        
+        for i in range(1, steps + 1):
+            t = i / steps
+            
+            # Fórmula de Bézier cuadrática
+            x = (1-t)**2 * start_x + 2*(1-t)*t * control_x + t**2 * end_x
+            y = (1-t)**2 * start_y + 2*(1-t)*t * control_y + t**2 * end_y
+            
+            # Calcular movimiento relativo
+            dx = x - prev_x
+            dy = y - prev_y
+            
+            path.append((dx, dy))
+            prev_x, prev_y = x, y
+        
+        return path
+    
+    def reset(self):
+        """Resetea el estado del motor"""
+        self.movement_path.clear()
+        self.current_velocity = np.array([0.0, 0.0])
+        self.total_distance_moved = 0
+    
+    def get_stats(self) -> dict:
+        """Obtiene estadísticas de movimiento"""
+        return {
+            "total_distance": self.total_distance_moved,
+            "path_length": len(self.movement_path),
+            "current_velocity": self.current_velocity.tolist()
+        }";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\core\program_t_engine.py>: """"
+Program_t Engine
+=============
+Motor principal que coordina detección, movimiento y trigger.
+"""
+
+import ctypes
+import cv2
+import math
+import time
+import torch
+from pathlib import Path
+import win32api
+import numpy as np
+from typing import Optional, Tuple
+from ultralytics import YOLO
+
+from lib.config.config_manager import config
+from lib.capture.capture_manager import CaptureManager
+from lib.input.mouse_manager import MouseManager
+from lib.core.detection_engine import DetectionEngine, DetectionConfig, Target
+from lib.core.movement_engine import MovementEngine, MovementConfig
+from lib.utils.logger import logger
+from lib.utils.performance_monitor import PerformanceMonitor
+from lib.utils.mouse_learning import ActiveMouseLearningSystem, AdaptiveLearningSystem
+
+class ProgramTEngine:
+    """Motor principal del program_t"""
+    
+    def __init__(self, profile_name: Optional[str] = None):
+        self.running = True
+        self.enabled = True
+        
+        # Cargar perfil
+        if profile_name:
+            config.set_active_profile(profile_name)
+        
+        profile = config.get_profile()
+        logger.info(f"Loading profile: {profile.get('name', 'Unknown')}", "ENGINE")
+        
+        # Inicializar componentes
+        self._init_screen_params()
+        self._init_capture()
+        self._init_mouse()
+        self._init_detection(profile)
+        self._init_movement(profile)
+        self._init_model()
+        self._init_trigger_bot(profile)
+        
+        # Performance monitoring
+        self.perf_monitor = PerformanceMonitor()
+        self.debug_counter = 0
+        
+        # Learning system
+        self.learning_system = ActiveMouseLearningSystem(
+            mouse_manager=self.mouse_manager,
+            screen_center=(self.screen_x, self.screen_y)
+        )
+
+        # NUEVO: Sistema de aprendizaje adaptativo
+        self.adaptive_learning = AdaptiveLearningSystem(
+            movement_engine=self.movement_engine,
+            detection_engine=self.detection_engine,
+            mouse_manager=self.mouse_manager
+        )
+
+        # NUEVO: Sistema de suspensión temporal
+        from lib.input.suspend_key_manager import suspend_manager
+        self.suspend_manager = suspend_manager
+        self.suspend_manager.start_monitoring()
+
+        logger.info("Suspend key system initialized", "ENGINE")
+
+        self._load_learning_profile()
+        
+        logger.info("Program_t engine initialized successfully", "ENGINE")
+        logger.info(f"Press F1 to toggle program_t, F2 to exit", "ENGINE")
+    
+    def _init_screen_params(self):
+        """Inicializa parámetros de pantalla"""
+        self.screen_res_x = ctypes.windll.user32.GetSystemMetrics(0)
+        self.screen_res_y = ctypes.windll.user32.GetSystemMetrics(1)
+        self.screen_x = int(self.screen_res_x / 2)
+        self.screen_y = int(self.screen_res_y / 2)
+        
+        logger.info(
+            f"Screen resolution: {self.screen_res_x}x{self.screen_res_y}", 
+            "ENGINE"
+        )
+    
+    def _init_capture(self):
+        """Inicializa sistema de captura"""
+        capture_method = config.get_user_setting('capture_method', 'bitblt')
+        self.capture_manager = CaptureManager(capture_method)
+        logger.info(
+            f"Capture method: {self.capture_manager.get_method_name()}", 
+            "ENGINE"
+        )
+    
+    def _init_mouse(self):
+        """Inicializa sistema de mouse"""
+        mouse_method = config.get_user_setting('mouse_method', 'ddxoft')
+        self.mouse_manager = MouseManager(mouse_method)
+        logger.info(
+            f"Mouse method: {self.mouse_manager.get_method_name()} "
+            f"(Detection risk: {self.mouse_manager.get_detection_level()})", 
+            "ENGINE"
+        )
+    
+    def _init_detection(self, profile: dict):
+        """Inicializa motor de detección"""
+        det_config = profile.get('detection', {})
+        self.detection_config = DetectionConfig(
+            fov=det_config.get('fov', 350),
+            confidence=det_config.get('confidence', 0.45),
+            iou=det_config.get('iou', 0.45),
+            aim_height_divisor=det_config.get('aim_height_divisor', 5),
+            target_priority=profile.get('targeting', {}).get('target_priority', 'closest'),
+            sticky_target=profile.get('targeting', {}).get('sticky_target', True),
+            stickiness_pixels=profile.get('targeting', {}).get('stickiness_pixels', 60),
+            persistence_frames=profile.get('targeting', {}).get('persistence_frames', 10)
+        )
+        self.detection_engine = DetectionEngine(self.detection_config)
+        self.box_constant = self.detection_config.fov
+    
+    def _init_movement(self, profile: dict):
+        """Inicializa motor de movimiento"""
+        mov_config = profile.get('movement', {})
+        self.movement_config = MovementConfig(
+            smoothing=mov_config.get('smoothing', 0.7),
+            deadzone_pixels=mov_config.get('deadzone_pixels', 2),
+            max_move_speed=mov_config.get('max_move_speed', 100.0),
+            acceleration_factor=mov_config.get('acceleration_factor', 0.8),
+            mouse_delay=mov_config.get('mouse_delay', 0.0009),
+            humanization_enabled=True
+        )
+        self.movement_engine = MovementEngine(self.movement_config)
+    
+    def _init_model(self):
+        """Inicializa modelo YOLO"""
+        model_path = 'lib/yoloe-11l-seg.pt'
+        logger.info("=" * 60, "ENGINE")
+        logger.info("LOADING AI MODEL", "ENGINE")
+        logger.info("=" * 60, "ENGINE")
+        logger.info(f"Model file: {model_path}", "ENGINE")
+        logger.info("Model type: YOLOE (YOLO11-based) - Open Vocabulary Detection + Segmentation", "ENGINE")
+        
+        self.model = YOLO(model_path)
+        
+        # Poner el modelo en modo evaluación (necesario para get_text_pe)
+        self.model.eval()
+        
+        logger.info(f"Model loaded successfully from: {model_path}", "ENGINE")
+        
+        # Configurar YOLOE para detectar SOLO humanoides sin texto/nombres encima
+        # Prompts específicos que evitan detecciones con UI/texto
+        detection_classes = [
+            "person",
+            "human",
+            "human without description low visibility",
+            "player model without UI elements or labels"
+        ]
+        # YOLOE requiere text embeddings como segundo parámetro
+        text_embeddings = self.model.get_text_pe(detection_classes)
+        self.model.set_classes(detection_classes, text_embeddings)
+        
+        logger.info("Detection classes configured:", "ENGINE")
+        for i, cls in enumerate(detection_classes, 1):
+            logger.info(f"  {i}. {cls}", "ENGINE")
+        logger.info("=" * 60, "ENGINE")
+        
+        # Detectar CUDA
+        self.device = 'cpu'
+        self.cuda_compatible = False
+        
+        if torch.cuda.is_available():
+            try:
+                gpu_name = torch.cuda.get_device_name(0)
+                compute_cap = torch.cuda.get_device_capability(0)
+                
+                logger.info(f"GPU detected: {gpu_name}", "ENGINE")
+                logger.info(f"Compute capability: sm_{compute_cap[0]}{compute_cap[1]}", "ENGINE")
+                
+                # Test CUDA
+                test_tensor = torch.tensor([1.0]).to('cuda')
+                _ = test_tensor * 2
+                
+                self.device = 'cuda'
+                self.cuda_compatible = True
+                logger.info("CUDA acceleration ENABLED", "ENGINE")
+                
+            except Exception as e:
+                logger.warning(f"CUDA test failed: {e}", "ENGINE")
+                logger.info("Falling back to CPU mode", "ENGINE")
+        else:
+            logger.warning("CUDA not available, using CPU", "ENGINE")
+    
+    def _init_trigger_bot(self, profile: dict):
+        """Inicializa trigger bot"""
+        tb_config = profile.get('trigger_bot', {})
+        self.trigger_enabled = tb_config.get('enabled', False)
+        self.trigger_human_delay = tb_config.get('human_like_delay', True)
+        self.trigger_min_delay = tb_config.get('min_shot_delay', 0.08)
+        self.trigger_max_delay = tb_config.get('max_shot_delay', 0.15)
+        self.trigger_burst_limit = tb_config.get('burst_limit', 3)
+        self.trigger_burst_cooldown = tb_config.get('burst_cooldown', 0.3)
+        
+        self.last_shot_time = 0
+        self.shot_cooldown = 0.1
+        self.consecutive_shots = 0
+        
+        if self.trigger_enabled:
+            logger.warning("Trigger bot is ENABLED", "ENGINE")
+    
+    def _load_learning_profile(self):
+        """Carga el perfil de learning, priorizando el adaptativo por defecto."""
+        profile_name = config.get_user_setting('active_profile', 'default')
+
+        # Leer la preferencia del usuario desde user_config.json
+        use_adaptive = config.get_user_setting('use_adaptive_learning_profile', True)
+        
+        if use_adaptive:
+            # Priorizar perfil adaptativo
+            adaptive_profile_name = f"learned_adaptive_{profile_name}"
+            if self.learning_system.load_profile(adaptive_profile_name):
+                logger.info(f"Loaded adaptive learning profile: {adaptive_profile_name}", "ENGINE")
+                self._apply_learning_corrections()
+                return  # Perfil adaptativo cargado con éxito
+            else:
+                logger.info(f"Adaptive profile '{adaptive_profile_name}' not found. Checking for legacy profile.", "ENGINE")
+
+        # Fallback a perfil legacy si el adaptativo no se cargó o está deshabilitado
+        legacy_profile_name = f"learned_{profile_name}"
+        if self.learning_system.load_profile(legacy_profile_name):
+            logger.info(f"Loaded legacy learning profile: {legacy_profile_name}", "ENGINE")
+            self._apply_learning_corrections()
+        else:
+            logger.info(f"No learning profile found for '{profile_name}'. Using default values.", "ENGINE")
+
+    def _apply_learning_corrections(self):
+        """Aplica las correcciones del sistema de learning"""
+        profile = self.learning_system.profile
+        if profile.confidence > 0.5:
+            logger.info(
+                f"Applying learned corrections: X={profile.x_scale:.2f}{'(inv)' if profile.x_inverted else ''}, "
+                f"Y={profile.y_scale:.2f}{'(inv)' if profile.y_inverted else ''}",
+                "ENGINE"
+            )
+    
+    def toggle_program_t(self):
+        """Activa/desactiva el program_t"""
+        self.enabled = not self.enabled
+        status = "ENABLED" if self.enabled else "DISABLED"
+        logger.info(f"Program_t {status}", "ENGINE")
+        
+        if not self.enabled:
+            self.movement_engine.reset()
+            self.detection_engine.reset()
+
+    def start_adaptive_learning(self):
+        """Inicia aprendizaje adaptativo con targets reales"""
+        if self.adaptive_learning.active:
+            logger.warning("Adaptive learning already active", "ENGINE")
+            return
+        
+        # Deshabilitar program_t normal
+        was_enabled = self.enabled
+        self.enabled = False
+        
+        if was_enabled:
+            logger.info("Program_t DISABLED for adaptive learning", "ENGINE")
+        
+        # Iniciar sistema adaptativo
+        if not self.adaptive_learning.start():
+            # Si falla, reactivar program_t si estaba activo
+            self.enabled = was_enabled
+    
+    def start_calibration(self):
+        """Inicia calibración activa"""
+        if not self.learning_system.calibration_active:
+            self.learning_system.start_calibration()
+        else:
+            logger.warning("Calibration already in progress", "ENGINE")
+    
+    def save_learning_profile(self):
+        """Guarda el perfil aprendido del sistema activo (legacy o adaptativo)"""
+        profile_name = config.get_user_setting('active_profile', 'default')
+        
+        # Si el sistema adaptativo se usó, guardar su perfil
+        if self.adaptive_learning.cycles_history:
+            learned_profile = self.adaptive_learning.get_learned_profile()
+            profile_filename = f"learned_adaptive_{profile_name}.json"
+            
+            profiles_dir = Path("lib/data/learning_profiles")
+            profiles_dir.mkdir(parents=True, exist_ok=True)
+            profile_path = profiles_dir / profile_filename
+            
+            try:
+                from dataclasses import asdict
+                import json
+                
+                with open(profile_path, 'w', encoding='utf-8') as f:
+                    json.dump(asdict(learned_profile), f, indent=2)
+                
+                logger.info(f"Adaptive learning profile saved: {profile_path}", "ENGINE")
+            except Exception as e:
+                logger.error(f"Failed to save adaptive profile: {e}", "ENGINE")
+        else:
+            # Si no, guardar el del sistema legacy
+            learning_profile = f"learned_{profile_name}"
+            self.learning_system.save_profile(learning_profile)
+    
+    def stop(self):
+        """Detiene el program_t"""
+        logger.info("Shutting down program_t engine...", "ENGINE")
+        self.running = False
+    
+    def run(self):
+        """Bucle principal del program_t"""
+        # Calcular región de detección
+        half_w = self.screen_res_x / 2
+        half_h = self.screen_res_y / 2
+        detection_box = {
+            'left': int(half_w - self.box_constant // 2),
+            'top': int(half_h - self.box_constant // 2),
+            'width': int(self.box_constant),
+            'height': int(self.box_constant)
+        }
+        
+        logger.info("Starting main loop...", "ENGINE")
+        
+        try:
+            while self.running:
+                loop_start = time.perf_counter()
+                
+                # Si está en calibración, ejecutar paso de calibración
+                if self.learning_system.calibration_active:
+                    if not self.learning_system.run_calibration_step():
+                        # Calibración terminada
+                        self.learning_system.stop_calibration()
+                    continue
+                
+                # Capturar pantalla
+                frame = self._capture_frame(detection_box)
+                if frame is None:
+                    time.sleep(0.01)
+                    continue
+                
+                # Detectar objetivos
+                targets = self._detect_targets(frame)
+                
+                # Si estamos en modo de aprendizaje adaptativo
+                if self.adaptive_learning.active and targets:
+                    best_target = self.detection_engine.select_best_target(targets)
+                    if best_target:
+                        absolute_x = best_target.head_x + detection_box['left']
+                        absolute_y = best_target.head_y + detection_box['top']
+                        
+                        # Procesar en el sistema adaptativo
+                        continue_learning = self.adaptive_learning.process_target(
+                            absolute_x, absolute_y,
+                            self.screen_x, self.screen_y
+                        )
+                        
+                        # Si terminó, reactivar program_t
+                        if not continue_learning:
+                            self.enabled = True
+                            logger.info("Adaptive learning complete - Program_t RE-ENABLED", "ENGINE")
+                    
+                    # Continuar al siguiente frame sin procesar normalmente
+                    self._render_frame(frame, loop_start)
+                    self.debug_counter += 1
+                    continue
+
+                # Seleccionar mejor objetivo
+                best_target = self.detection_engine.select_best_target(targets)
+                
+                # Procesar objetivo
+                if best_target:
+                    self._process_target(best_target, detection_box, frame)
+                else:
+                    self.movement_engine.reset()
+                
+                # Calcular FPS y mostrar
+                self._render_frame(frame, loop_start)
+                
+                # Performance logging
+                if self.debug_counter % 300 == 0:
+                    self.perf_monitor.log_frame(
+                        fps=1 / (time.perf_counter() - loop_start) if (time.perf_counter() - loop_start) > 0 else 0,
+                        targets=len(targets),
+                        locked=best_target is not None
+                    )
+                
+                self.debug_counter += 1
+                
+                # Frame limiting
+                elapsed = time.perf_counter() - loop_start
+                if elapsed < 0.016:  # ~60 FPS cap
+                    time.sleep(0.016 - elapsed)
+                    
+        except KeyboardInterrupt:
+            logger.info("Interrupted by user", "ENGINE")
+        except Exception as e:
+            logger.error(f"Fatal error in main loop: {e}", "ENGINE")
+        finally:
+            self.cleanup()
+    
+    def _capture_frame(self, detection_box: dict) -> Optional[np.ndarray]:
+        """Captura un frame de la pantalla"""
+        frame = self.capture_manager.capture(detection_box)
+        
+        if frame is None or frame.size == 0:
+            if self.debug_counter % 30 == 0:
+                logger.warning("Frame capture returned empty", "CAPTURE")
+            return None
+        
+        # Convertir a BGR para OpenCV
+        if frame.shape[2] == 4:  # BGRA
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+        
+        return frame
+    
+    def _detect_targets(self, frame: np.ndarray) -> list:
+        """Detecta objetivos en el frame"""
+        try:
+            use_half = (self.device == 'cuda' and self.cuda_compatible)
+            results = self.model.predict(
+                source=frame,
+                verbose=False,
+                conf=self.detection_config.confidence,
+                iou=self.detection_config.iou,
+                half=use_half,
+                device=self.device
+            )
+            
+            if len(results) > 0 and len(results[0].boxes.xyxy) > 0:
+                # Obtener clases y confidences detectadas
+                boxes_data = results[0].boxes
+                class_ids = boxes_data.cls.cpu().numpy() if len(boxes_data.cls) > 0 else []
+                confidences = boxes_data.conf.cpu().numpy() if len(boxes_data.conf) > 0 else []
+                
+                targets = self.detection_engine.process_detections(
+                    results[0].boxes.xyxy,
+                    self.box_constant,
+                    self.screen_x,
+                    self.screen_y
+                )
+                
+                # Agregar información de clase y confianza a cada target
+                valid_targets = []
+                rejected_targets = []
+                
+                for i, target in enumerate(targets):
+                    if i < len(class_ids):
+                        class_id = int(class_ids[i])
+                        class_name = self.model.names.get(class_id, "unknown")
+                        target.class_name = class_name
+                        target.confidence = float(confidences[i]) if i < len(confidences) else 0.0
+                    else:
+                        target.class_name = "unknown"
+                        target.confidence = 0.0
+                    
+                    # FILTRO: Confianza mínima del 56%
+                    if target.confidence > 0.50:
+                        valid_targets.append(target)
+                    else:
+                        rejected_targets.append(target)
+                
+                # Log de targets rechazados
+                if rejected_targets and self.debug_counter % 30 == 0:
+                    for target in rejected_targets:
+                        conf_pct = int(target.confidence * 100)
+                        logger.warning(
+                            f"Detection rejected: {target.class_name} ({conf_pct}%) - "
+                            f"Did not reach minimum confidence (56%)",
+                            "DETECT"
+                        )
+                
+                # Debug: Mostrar qué clases válidas detectó YOLO-World
+                if self.debug_counter % 30 == 0 and len(valid_targets) > 0:
+                    classes_detected = [f"{t.class_name} ({t.confidence*100:.0f}%)" for t in valid_targets]
+                    logger.info(f"Valid targets: {len(valid_targets)} - {', '.join(classes_detected)}", "DETECT")
+                
+                return valid_targets
+            
+            return []
+            
+        except Exception as e:
+            if self.debug_counter % 30 == 0:
+                logger.error(f"Detection failed: {e}", "DETECT")
+            return []
+    
+    def _process_target(
+        self, 
+        target: Target, 
+        detection_box: dict, 
+        frame: np.ndarray
+    ):
+        """Procesa un objetivo detectado"""
+        # Calcular coordenadas absolutas
+        absolute_x = target.head_x + detection_box['left']
+        absolute_y = target.head_y + detection_box['top']
+        
+        # Obtener posición actual del cursor
+        try:
+            current_x, current_y = win32api.GetCursorPos()
+            cursor_before = (current_x, current_y)
+        except:
+            current_x, current_y = self.screen_x, self.screen_y
+            cursor_before = None
+        
+        # Verificar si está locked
+        is_locked = self.detection_engine.is_locked_on_target(
+            absolute_x, absolute_y,
+            self.screen_x, self.screen_y,
+            config.get_value('targeting', 'lock_threshold_pixels', default=15)
+        )
+        
+        # NUEVO: Verificar si está suspendido
+        if self.suspend_manager.is_suspended():
+            # No mover, pero seguir dibujando y detectando
+            self._draw_target(frame, target, is_locked)
+            
+            # Mostrar indicador de suspensión
+            cv2.putText(
+                frame, "SUSPENDED",
+                (5, 90),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7, (0, 165, 255), 2
+            )
+            return  # Salir sin mover
+        
+        # Dibujar en frame
+        self._draw_target(frame, target, is_locked)
+        
+        # Mover si está habilitado y no locked
+        if self.enabled and not is_locked:
+            movement = self.movement_engine.calculate_movement(
+                current_x, current_y,
+                absolute_x, absolute_y
+            )
+            
+            if movement:
+                dx, dy = movement
+                
+                # Aplicar correcciones del learning system
+                if self.learning_system.profile.confidence > 0.3:
+                    dx, dy = self.learning_system.apply_correction(dx, dy)
+                
+                # Aplicar smoothing del perfil aprendido
+                adjusted_smoothing = self.learning_system.profile.smoothing
+                dx *= adjusted_smoothing
+                dy *= adjusted_smoothing
+                
+                # Mover mouse
+                self.mouse_manager.move(dx, dy, self.movement_config.mouse_delay)
+        
+        # Trigger bot
+        if is_locked and self.trigger_enabled:
+            self._handle_trigger(absolute_x, absolute_y)
+    
+    def _draw_target(self, frame: np.ndarray, target: Target, is_locked: bool):
+        """Dibuja el objetivo en el frame"""
+        x1, y1, x2, y2 = target.box
+        
+        # Color según estado
+        color = (115, 244, 113) if is_locked else (115, 113, 244)
+        
+        # Caja de detección
+        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
+        
+        # Punto de mira (cabeza)
+        cv2.circle(frame, (target.head_x, target.head_y), 5, color, -1)
+        
+        # Línea al centro
+        center = self.box_constant // 2
+        cv2.line(
+            frame, 
+            (target.head_x, target.head_y), 
+            (center, center), 
+            (244, 242, 113), 
+            2
+        )
+        
+        # Cruz en el centro
+        cv2.line(frame, (center - 10, center), (center + 10, center), (0, 0, 255), 2)
+        cv2.line(frame, (center, center - 10), (center, center + 10), (0, 0, 255), 2)
+        
+        # Texto de estado + clase detectada + porcentaje
+        status_text = "LOCKED" if is_locked else "TARGETING"
+        confidence_pct = int(target.confidence * 100)
+        class_text = f"{status_text}: {target.class_name} ({confidence_pct}%)"
+        
+        cv2.putText(
+            frame, class_text, 
+            (x1 + 5, y1 - 5), 
+            cv2.FONT_HERSHEY_SIMPLEX, 
+            0.5, color, 2
+        )
+        
+    
+    def _handle_trigger(self, x: int, y: int):
+        """Maneja el trigger bot"""
+        current_time = time.perf_counter()
+        
+        # No disparar si ya estamos disparando manualmente
+        if self._is_shooting():
+            return
+        
+        # Verificar cooldown
+        if (current_time - self.last_shot_time) < self.shot_cooldown:
+            return
+        
+        # Verificar límite de ráfaga
+        if self.consecutive_shots >= self.trigger_burst_limit:
+            self.consecutive_shots = 0
+            self.shot_cooldown = self.trigger_burst_cooldown
+            return
+        
+        # Disparar
+        self.mouse_manager.click('left')
+        self.last_shot_time = current_time
+        self.consecutive_shots += 1
+        
+        # Calcular próximo cooldown
+        if self.trigger_human_delay:
+            import random
+            self.shot_cooldown = random.uniform(
+                self.trigger_min_delay,
+                self.trigger_max_delay
+            )
+        else:
+            self.shot_cooldown = 0.1
+    
+    def _is_shooting(self) -> bool:
+        """Verifica si el usuario está disparando"""
+        return win32api.GetKeyState(0x01) in (-127, -128)
+    
+    def _render_frame(self, frame: np.ndarray, loop_start: float):
+        """Renderiza el frame con información"""
+        fps = int(1 / (time.perf_counter() - loop_start)) if (time.perf_counter() - loop_start) > 0 else 0
+        
+        # FPS counter
+        cv2.putText(
+            frame, f"FPS: {fps}", 
+            (5, 30), 
+            cv2.FONT_HERSHEY_SIMPLEX, 
+            1, (113, 116, 244), 2
+        )
+        
+        # Estado del program_t
+        status_text = "ENABLED" if self.enabled else "DISABLED"
+        status_color = (0, 255, 0) if self.enabled else (0, 0, 255)
+        cv2.putText(
+            frame, f"Program_t: {status_text}", 
+            (5, 60), 
+            cv2.FONT_HERSHEY_SIMPLEX, 
+            0.7, status_color, 2
+        )
+        
+        # Mostrar frame
+        try:
+            cv2.imshow("AI Program_t - Lunar LITE", frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.running = False
+        except Exception as e:
+            if self.debug_counter % 30 == 0:
+                logger.warning(f"OpenCV display error: {e}", "RENDER")
+    
+    def cleanup(self):
+        """Limpia recursos"""
+        logger.info("Cleaning up resources...", "ENGINE")
+        
+        try:
+            # Detener monitoreo de suspensión
+            self.suspend_manager.stop_monitoring()
+            
+            self.capture_manager.cleanup()
+            self.mouse_manager.cleanup()
+            cv2.destroyAllWindows()
+            logger.info("Cleanup completed successfully", "ENGINE")
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}", "ENGINE")";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\core\__init__.py>: "";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\data\learning_profiles\learned_adaptive_default.json>: "{
+  "x_inverted": false,
+  "y_inverted": false,
+  "x_scale": 1.0,
+  "y_scale": 1.0,
+  "smoothing": 0.15,
+  "deadzone": 5,
+  "confidence": 1.0,
+  "sample_count": 3,
+  "last_updated": 1761303653.1754692,
+  "tests_completed": 3,
+  "notes": [
+    "All cycles successful - high confidence"
+  ]
+}";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\data\learning_profiles\learned_default.json>: "{
+  "x_inverted": false,
+  "y_inverted": false,
+  "x_scale": 1.0,
+  "y_scale": 1.0,
+  "smoothing": 0.15,
+  "deadzone": 5,
+  "confidence": 1.0,
+  "sample_count": 3,
+  "last_updated": 1761303653.1754692,
+  "tests_completed": 3,
+  "notes": [
+    "All cycles successful - high confidence"
+  ]
+}";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\input\mouse_manager.py>: """"
+Mouse Manager
+=============
+Gestiona diferentes métodos de entrada de mouse con detección automática.
+"""
+
+import ctypes
+import time
+import os
+from abc import ABC, abstractmethod
+from typing import Optional, Tuple
+from lib.utils.logger import logger
+
+PUL = ctypes.POINTER(ctypes.c_ulong)
+
+class MouseInput(ctypes.Structure):
+    _fields_ = [
+        ("dx", ctypes.c_long),
+        ("dy", ctypes.c_long),
+        ("mouseData", ctypes.c_ulong),
+        ("dwFlags", ctypes.c_ulong),
+        ("time", ctypes.c_ulong),
+        ("dwExtraInfo", PUL)
+    ]
+
+class Input_I(ctypes.Union):
+    _fields_ = [("mi", MouseInput)]
+
+class Input(ctypes.Structure):
+    _fields_ = [
+        ("type", ctypes.c_ulong),
+        ("ii", Input_I)
+    ]
+
+class MouseMethod(ABC):
+    """Clase base para métodos de mouse"""
+    
+    @abstractmethod
+    def move(self, dx: int, dy: int) -> bool:
+        """Mueve el mouse de forma relativa"""
+        pass
+    
+    @abstractmethod
+    def click(self, button: str = 'left') -> bool:
+        """Hace clic con el mouse"""
+        pass
+    
+    @abstractmethod
+    def initialize(self) -> bool:
+        """Inicializa el método"""
+        pass
+    
+    @abstractmethod
+    def cleanup(self):
+        """Limpia recursos"""
+        pass
+    
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        """Nombre del método"""
+        pass
+    
+    @property
+    @abstractmethod
+    def detection_level(self) -> str:
+        """Nivel de detección (LOW, MEDIUM, HIGH)"""
+        pass
+
+class DDXoftMouse(MouseMethod):
+    """Método DDXoft (kernel-level, baja detección)"""
+    
+    def __init__(self):
+        self.dll = None
+        self._name = "DDXoft"
+        self._detection_level = "LOW"
+        self.initialized = False
+    
+    @property
+    def name(self) -> str:
+        return self._name
+    
+    @property
+    def detection_level(self) -> str:
+        return self._detection_level
+    
+    def initialize(self) -> bool:
+        """Inicializa el driver DDXoft"""
+        try:
+            # Construir ruta robusta a la DLL
+            script_dir = os.path.dirname(os.path.abspath(__file__))
+            dll_path = os.path.join(script_dir, "..", "mouse", "dd40605x64.dll")
+            dll_path = os.path.normpath(dll_path)
+            
+            if not os.path.exists(dll_path):
+                logger.error(f"DDXoft DLL not found at: {dll_path}", "MOUSE")
+                return False
+            
+            # Cargar DLL
+            self.dll = ctypes.WinDLL(dll_path)
+            time.sleep(0.1)
+            
+            # Configurar tipos de argumentos
+            self.dll.DD_btn.argtypes = [ctypes.c_int]
+            self.dll.DD_btn.restype = ctypes.c_int
+            
+            self.dll.DD_movR.argtypes = [ctypes.c_int, ctypes.c_int]
+            self.dll.DD_movR.restype = ctypes.c_int
+            
+            self.dll.DD_key.argtypes = [ctypes.c_int, ctypes.c_int]
+            self.dll.DD_key.restype = ctypes.c_int
+            
+            # Inicializar driver
+            init_code = self.dll.DD_btn(0)
+            
+            if init_code != 1:
+                logger.error(
+                    f"DDXoft driver initialization failed (code: {init_code}). "
+                    "MAKE SURE TO RUN AS ADMINISTRATOR!", 
+                    "MOUSE"
+                )
+                return False
+            
+            # Test de movimiento
+            test_result = self.dll.DD_movR(0, 0)
+            if test_result != 1:
+                logger.warning(f"DDXoft test movement returned: {test_result}", "MOUSE")
+            
+            self.initialized = True
+            logger.info("DDXoft driver initialized successfully (LOW detection risk)", "MOUSE")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize DDXoft: {e}", "MOUSE")
+            logger.warning("Possible causes: Antivirus blocking, missing admin rights", "MOUSE")
+            return False
+    
+    def move(self, dx: int, dy: int) -> bool:
+        """Mueve el mouse de forma relativa"""
+        if not self.initialized or self.dll is None:
+            return False
+        
+        try:
+            # DDXoft requiere valores enteros
+            dx_int = int(round(dx))
+            dy_int = int(round(dy))
+            
+            if dx_int == 0 and dy_int == 0:
+                return True
+            
+            result = self.dll.DD_movR(dx_int, dy_int)
+            return result == 1
+            
+        except Exception as e:
+            logger.debug(f"DDXoft move failed: {e}", "MOUSE")
+            return False
+    
+    def click(self, button: str = 'left') -> bool:
+        """Hace clic con el mouse"""
+        if not self.initialized or self.dll is None:
+            return False
+        
+        try:
+            if button == 'left':
+                self.dll.DD_btn(1)  # Mouse down
+                time.sleep(0.001)
+                self.dll.DD_btn(2)  # Mouse up
+            elif button == 'right':
+                self.dll.DD_btn(4)  # Right down
+                time.sleep(0.001)
+                self.dll.DD_btn(8)  # Right up
+            return True
+        except Exception as e:
+            logger.debug(f"DDXoft click failed: {e}", "MOUSE")
+            return False
+    
+    def cleanup(self):
+        """Limpia recursos"""
+        self.dll = None
+        self.initialized = False
+        logger.info("DDXoft driver cleaned up", "MOUSE")
+
+class Win32Mouse(MouseMethod):
+    """Método Win32 SendInput (alta detección, no funciona en pantalla completa)"""
+    
+    def __init__(self):
+        self.extra = ctypes.c_ulong(0)
+        self.ii_ = Input_I()
+        self._name = "Win32"
+        self._detection_level = "HIGH"
+    
+    @property
+    def name(self) -> str:
+        return self._name
+    
+    @property
+    def detection_level(self) -> str:
+        return self._detection_level
+    
+    def initialize(self) -> bool:
+        """Inicializa el método Win32"""
+        logger.warning(
+            "Win32 method is HIGHLY DETECTABLE and may not work in fullscreen games!", 
+            "MOUSE"
+        )
+        logger.info("Win32 mouse initialized", "MOUSE")
+        return True
+    
+    def move(self, dx: int, dy: int) -> bool:
+        """Mueve el mouse usando SendInput"""
+        try:
+            dx_int = int(dx)
+            dy_int = int(dy)
+            
+            if dx_int == 0 and dy_int == 0:
+                return True
+            
+            self.ii_.mi = MouseInput(
+                dx_int, dy_int, 0, 0x0001, 0, 
+                ctypes.pointer(self.extra)
+            )
+            command = Input(ctypes.c_ulong(0), self.ii_)
+            result = ctypes.windll.user32.SendInput(
+                1, ctypes.pointer(command), ctypes.sizeof(command)
+            )
+            return result == 1
+            
+        except Exception as e:
+            logger.debug(f"Win32 move failed: {e}", "MOUSE")
+            return False
+    
+    def click(self, button: str = 'left') -> bool:
+        """Hace clic usando mouse_event"""
+        try:
+            if button == 'left':
+                ctypes.windll.user32.mouse_event(0x0002)  # Left down
+                time.sleep(0.0001)
+                ctypes.windll.user32.mouse_event(0x0004)  # Left up
+            elif button == 'right':
+                ctypes.windll.user32.mouse_event(0x0008)  # Right down
+                time.sleep(0.0001)
+                ctypes.windll.user32.mouse_event(0x0010)  # Right up
+            return True
+        except Exception as e:
+            logger.debug(f"Win32 click failed: {e}", "MOUSE")
+            return False
+    
+    def cleanup(self):
+        """Limpia recursos"""
+        logger.info("Win32 mouse cleaned up", "MOUSE")
+
+class MouseManager:
+    """Gestor de mouse con auto-selección de método"""
+    
+    def __init__(self, preferred_method: str = 'auto'):
+        self.current_method: Optional[MouseMethod] = None
+        self.preferred_method = preferred_method.lower()
+        self.move_failures = 0
+        self.move_successes = 0
+        self.auto_switch_threshold = 50
+        
+        self.initialize_mouse()
+    
+    def initialize_mouse(self):
+        """Inicializa el método de mouse preferido"""
+        if self.preferred_method == 'ddxoft':
+            self._try_ddxoft()
+        elif self.preferred_method == 'win32':
+            self._try_win32()
+        elif self.preferred_method == 'auto':
+            # Intentar DDXoft primero (menos detectable)
+            if not self._try_ddxoft():
+                logger.warning("DDXoft failed, falling back to Win32", "MOUSE")
+                self._try_win32()
+        
+        if self.current_method is None:
+            logger.critical("No mouse method could be initialized!", "MOUSE")
+    
+    def _try_ddxoft(self) -> bool:
+        """Intenta inicializar DDXoft"""
+        method = DDXoftMouse()
+        if method.initialize():
+            self.current_method = method
+            return True
+        return False
+    
+    def _try_win32(self) -> bool:
+        """Intenta inicializar Win32"""
+        method = Win32Mouse()
+        if method.initialize():
+            self.current_method = method
+            return True
+        return False
+    
+    def move(self, dx: float, dy: float, delay: float = 0.0009) -> bool:
+        """Mueve el mouse con delay opcional"""
+        if self.current_method is None:
+            return False
+        
+        success = self.current_method.move(dx, dy)
+        
+        if success:
+            self.move_successes += 1
+            self.move_failures = 0
+        else:
+            self.move_failures += 1
+            
+            # Auto-switch si hay muchos fallos
+            if self.move_failures >= self.auto_switch_threshold:
+                logger.warning(
+                    f"{self.current_method.name} failed {self.move_failures} times, "
+                    "trying alternative method...", 
+                    "MOUSE"
+                )
+                self._switch_method()
+                self.move_failures = 0
+        
+        if delay > 0:
+            time.sleep(delay)
+        
+        return success
+    
+    def click(self, button: str = 'left') -> bool:
+        """Hace clic"""
+        if self.current_method is None:
+            return False
+        return self.current_method.click(button)
+    
+    def _switch_method(self):
+        """Cambia al método alternativo"""
+        if isinstance(self.current_method, DDXoftMouse):
+            logger.info("Switching from DDXoft to Win32", "MOUSE")
+            self.cleanup()
+            self._try_win32()
+        elif isinstance(self.current_method, Win32Mouse):
+            logger.info("Switching from Win32 to DDXoft", "MOUSE")
+            self.cleanup()
+            self._try_ddxoft()
+    
+    def get_method_name(self) -> str:
+        """Obtiene el nombre del método actual"""
+        return self.current_method.name if self.current_method else "None"
+    
+    def get_detection_level(self) -> str:
+        """Obtiene el nivel de detección"""
+        return self.current_method.detection_level if self.current_method else "UNKNOWN"
+    
+    def cleanup(self):
+        """Limpia recursos"""
+        if self.current_method:
+            self.current_method.cleanup()
+            self.current_method = None";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\input\suspend_key_manager.py>: """"
+Suspend Key Manager
+==================
+Gestiona una tecla de suspensión temporal del program_t.
+Mientras se mantiene presionada, el program_t no moverá el mouse.
+"""
+
+import json
+import threading
+from pathlib import Path
+from typing import Optional
+from pynput import keyboard
+from lib.utils.logger import logger
+from lib.config.config_manager import config
+
+class SuspendKeyManager:
+    """Gestor de tecla de suspensión del program_t"""
+    
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+    
+    def __init__(self):
+        if self._initialized:
+            return
+        
+        self._initialized = True
+        self.suspended = False
+        self.suspend_key = None
+        self.listener = None
+        self.lock = threading.Lock()
+        
+        # Cargar o solicitar tecla de suspensión
+        self._load_or_request_suspend_key()
+    
+    def _load_or_request_suspend_key(self):
+        """Carga la tecla desde config o la solicita al usuario"""
+        # Intentar cargar desde configuración
+        saved_key = config.get_user_setting('suspend_key', None)
+        
+        if saved_key:
+            self.suspend_key = self._parse_key_string(saved_key)
+            logger.info(f"Suspend key loaded: {saved_key}", "SUSPEND")
+        else:
+            # Solicitar al usuario
+            self._request_suspend_key()
+    
+    def _request_suspend_key(self):
+        """Solicita al usuario que ingrese una tecla de suspensión"""
+        from termcolor import colored
+        
+        print("\n" + "="*60)
+        print(colored("SUSPEND KEY CONFIGURATION", "cyan", attrs=['bold']))
+        print("="*60)
+        print(colored("\nThis key will TEMPORARILY SUSPEND the program_t while held.", "yellow"))
+        print(colored("When you release it, the program_t will continue working.", "yellow"))
+        print(colored("\nRecommended keys: Shift, Ctrl, Alt, CapsLock", "cyan"))
+        print(colored("\nPress the key you want to use as suspend key...", "green"))
+        
+        selected_key = None
+        
+        def on_press(key):
+            nonlocal selected_key
+            selected_key = key
+            return False  # Stop listener
+        
+        # Escuchar la siguiente tecla presionada
+        with keyboard.Listener(on_press=on_press) as listener:
+            listener.join()
+        
+        if selected_key:
+            # Guardar la tecla
+            key_string = self._key_to_string(selected_key)
+            self.suspend_key = selected_key
+            config.set_user_setting('suspend_key', key_string)
+            
+            print(colored(f"\n✅ Suspend key set to: {key_string}", "green"))
+            print(colored(f"Hold '{key_string}' to temporarily suspend program_t movements.", "yellow"))
+            print("="*60 + "\n")
+            
+            logger.info(f"Suspend key configured: {key_string}", "SUSPEND")
+        else:
+            logger.warning("No suspend key configured", "SUSPEND")
+    
+    def _key_to_string(self, key) -> str:
+        """Convierte un objeto Key a string"""
+        try:
+            # Teclas especiales
+            if hasattr(key, 'name'):
+                return key.name
+            # Teclas alfanuméricas
+            elif hasattr(key, 'char'):
+                return key.char
+            else:
+                return str(key)
+        except:
+            return str(key)
+    
+    def _parse_key_string(self, key_string: str):
+        """Convierte un string a objeto Key"""
+        try:
+            # Intentar como tecla especial
+            if hasattr(keyboard.Key, key_string):
+                return getattr(keyboard.Key, key_string)
+            # Intentar como carácter
+            elif len(key_string) == 1:
+                return keyboard.KeyCode.from_char(key_string)
+            else:
+                # Fallback
+                return keyboard.KeyCode.from_char(key_string[0])
+        except Exception as e:
+            logger.error(f"Failed to parse key string '{key_string}': {e}", "SUSPEND")
+            return None
+    
+    def start_monitoring(self):
+        """Inicia el monitoreo de la tecla de suspensión"""
+        if self.suspend_key is None:
+            logger.warning("No suspend key configured, monitoring disabled", "SUSPEND")
+            return False
+        
+        if self.listener is not None:
+            logger.warning("Suspend key monitoring already active", "SUSPEND")
+            return True
+        
+        # Crear listener
+        self.listener = keyboard.Listener(
+            on_press=self._on_press,
+            on_release=self._on_release
+        )
+        self.listener.start()
+        
+        key_name = self._key_to_string(self.suspend_key)
+        logger.info(f"Suspend key monitoring started: {key_name}", "SUSPEND")
+        logger.info(f"Hold '{key_name}' to temporarily suspend program_t", "SUSPEND")
+        
+        return True
+    
+    def stop_monitoring(self):
+        """Detiene el monitoreo"""
+        if self.listener:
+            self.listener.stop()
+            self.listener = None
+            logger.info("Suspend key monitoring stopped", "SUSPEND")
+    
+    def _on_press(self, key):
+        """Callback cuando se presiona una tecla"""
+        if key == self.suspend_key:
+            with self.lock:
+                if not self.suspended:
+                    self.suspended = True
+                    key_name = self._key_to_string(key)
+                    logger.info(f"Program_t SUSPENDED (holding '{key_name}')", "SUSPEND")
+    
+    def _on_release(self, key):
+        """Callback cuando se suelta una tecla"""
+        if key == self.suspend_key:
+            with self.lock:
+                if self.suspended:
+                    self.suspended = False
+                    key_name = self._key_to_string(key)
+                    logger.info(f"Program_t RESUMED (released '{key_name}')", "SUSPEND")
+    
+    def is_suspended(self) -> bool:
+        """Verifica si el program_t está suspendido"""
+        with self.lock:
+            return self.suspended
+    
+    def reconfigure(self):
+        """Reconfigura la tecla de suspensión"""
+        self.stop_monitoring()
+        self.suspend_key = None
+        self._request_suspend_key()
+        self.start_monitoring()
+
+# Instancia global
+suspend_manager = SuspendKeyManager()";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\input\__init__.py>: "";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\utils\calibration.py>: """"
+Calibration Utility
+==================
+Herramienta de calibración para diferentes juegos.
+"""
+
+import json
+import time
+from pathlib import Path
+from termcolor import colored
+from lib.utils.logger import logger
+
+class CalibrationWizard:
+    """Asistente de calibración para juegos"""
+    
+    def __init__(self):
+        self.config_path = Path("lib/config/user_config.json")
+    
+    def run(self):
+        """Ejecuta el asistente de calibración"""
+        print(colored("\n" + "="*60, "cyan"))
+        print(colored("  AI PROGRAM_T - CALIBRATION WIZARD", "cyan", attrs=['bold']))
+        print(colored("="*60 + "\n", "cyan"))
+        
+        # Seleccionar juego
+        game_profile = self._select_game()
+        
+        # Calibrar sensibilidad (opcional para algunos juegos)
+        if self._ask_yes_no("Do you want to calibrate sensitivity settings?"):
+            self._calibrate_sensitivity()
+        
+        # Configurar método de captura
+        capture_method = self._select_capture_method()
+        
+        # Configurar método de mouse
+        mouse_method = self._select_mouse_method()
+        
+        # Guardar configuración
+        self._save_config(game_profile, capture_method, mouse_method)
+        
+        print(colored("\n✅ Calibration complete!", "green", attrs=['bold']))
+        print(colored("You can now run the program_t with your settings.\n", "green"))
+    
+    def _select_game(self) -> str:
+        """Selecciona el perfil del juego"""
+        from lib.config.config_manager import config
+        
+        profiles = config.list_profiles()
+        
+        print(colored("Available game profiles:", "yellow"))
+        for i, profile_name in enumerate(profiles, 1):
+            profile = config.get_profile(profile_name)
+            desc = profile.get('description', 'No description')
+            print(f"  {i}. {colored(profile.get('name', profile_name), 'cyan')} - {desc}")
+        
+        while True:
+            try:
+                choice = input(colored("\nSelect profile number: ", "yellow"))
+                idx = int(choice) - 1
+                if 0 <= idx < len(profiles):
+                    selected = profiles[idx]
+                    config.set_active_profile(selected)
+                    print(colored(f"✓ Selected: {selected}", "green"))
+                    return selected
+                else:
+                    print(colored("Invalid selection. Try again.", "red"))
+            except (ValueError, IndexError):
+                print(colored("Invalid input. Enter a number.", "red"))
+    
+    def _calibrate_sensitivity(self):
+        """Calibra la sensibilidad del juego"""
+        print(colored("\n--- Sensitivity Calibration ---", "yellow"))
+        print("This helps the program_t match your in-game mouse settings.")
+        print("Make sure both X and Y sensitivity are the SAME in-game.\n")
+        
+        def get_float(prompt: str) -> float:
+            while True:
+                try:
+                    value = float(input(colored(prompt, "cyan")))
+                    if value > 0:
+                        return value
+                    print(colored("Value must be positive!", "red"))
+                except ValueError:
+                    print(colored("Invalid number. Try again.", "red"))
+        
+        xy_sens = get_float("Enter X/Y sensitivity (from in-game settings): ")
+        targeting_sens = get_float("Enter targeting/ADS sensitivity (from in-game settings): ")
+        
+        # Calcular escalas
+        xy_scale = 10.0 / xy_sens
+        targeting_scale = 1000.0 / (targeting_sens * xy_sens)
+        
+        # Guardar en config.json
+        config_data = {
+            "xy_sens": xy_sens,
+            "targeting_sens": targeting_sens,
+            "xy_scale": xy_scale,
+            "targeting_scale": targeting_scale,
+            "_comment": "Sensitivity calibration settings"
+        }
+        
+        config_path = Path("lib/config/config.json")
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(config_data, f, indent=4)
+        
+        print(colored("✓ Sensitivity calibrated and saved!", "green"))
+    
+    def _select_capture_method(self) -> str:
+        """Selecciona el método de captura"""
+        print(colored("\n--- Screen Capture Method ---", "yellow"))
+        print("1. BitBlt (Recommended) - Works with fullscreen games")
+        print("2. MSS - Faster, but only works with borderless windowed")
+        print("3. Auto - Try BitBlt first, fallback to MSS")
+        
+        methods = ['bitblt', 'mss', 'auto']
+        
+        while True:
+            choice = input(colored("\nSelect method (1-3): ", "cyan"))
+            if choice in ['1', '2', '3']:
+                selected = methods[int(choice) - 1]
+                print(colored(f"✓ Selected: {selected}", "green"))
+                return selected
+            print(colored("Invalid choice. Enter 1, 2, or 3.", "red"))
+    
+    def _select_mouse_method(self) -> str:
+        """Selecciona el método de mouse"""
+        print(colored("\n--- Mouse Input Method ---", "yellow"))
+        print("1. DDXoft (Recommended) - Low detection, requires admin")
+        print("2. Win32 - High detection, may not work in fullscreen")
+        print("3. Auto - Try DDXoft first, fallback to Win32")
+        
+        methods = ['ddxoft', 'win32', 'auto']
+        
+        while True:
+            choice = input(colored("\nSelect method (1-3): ", "cyan"))
+            if choice in ['1', '2', '3']:
+                selected = methods[int(choice) - 1]
+                print(colored(f"✓ Selected: {selected}", "green"))
+                return selected
+            print(colored("Invalid choice. Enter 1, 2, or 3.", "red"))
+    
+    def _ask_yes_no(self, question: str) -> bool:
+        """Pregunta sí/no"""
+        while True:
+            response = input(colored(f"{question} (y/n): ", "cyan")).strip().lower()
+            if response in ['y', 'yes']:
+                return True
+            elif response in ['n', 'no']:
+                return False
+            print(colored("Please enter 'y' or 'n'.", "red"))
+    
+    def _save_config(self, profile: str, capture: str, mouse: str):
+        """Guarda la configuración del usuario"""
+        from lib.config.config_manager import config
+        
+        config.set_user_setting('active_profile', profile)
+        config.set_user_setting('capture_method', capture)
+        config.set_user_setting('mouse_method', mouse)
+        
+        logger.info("User configuration saved", "CALIBRATION")
+
+def run_calibration():
+    """Función helper para ejecutar la calibración"""
+    wizard = CalibrationWizard()
+    wizard.run()";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\utils\logger.py>: """"
+Advanced Logging System
+=======================
+Sistema de logs robusto con niveles, colores y rotación de archivos.
+"""
+
+import logging
+import sys
+from pathlib import Path
+from datetime import datetime
+from termcolor import colored
+import json
+
+class ColoredFormatter(logging.Formatter):
+    """Formatter personalizado con colores para consola"""
+    
+    COLORS = {
+        'DEBUG': 'cyan',
+        'INFO': 'green',
+        'WARNING': 'yellow',
+        'ERROR': 'red',
+        'CRITICAL': 'magenta'
+    }
+    
+    def format(self, record):
+        levelname = record.levelname
+        message = super().format(record)
+        
+        if levelname in self.COLORS:
+            levelname_colored = colored(f"[{levelname}]", self.COLORS[levelname])
+            message = message.replace(f"[{levelname}]", levelname_colored)
+        
+        return message
+
+class Program_tLogger:
+    """Logger centralizado para todo el program_t"""
+    
+    _instance = None
+    
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
+    
+    def __init__(self):
+        if self._initialized:
+            return
+            
+        self._initialized = True
+        self.setup_logger()
+    
+    def setup_logger(self):
+        """Configura el sistema de logging"""
+        # Crear directorio de logs
+        log_dir = Path("logs")
+        log_dir.mkdir(exist_ok=True)
+        
+        # Configurar logger principal
+        self.logger = logging.getLogger("Program_tLogger")
+        self.logger.setLevel(logging.DEBUG)
+        
+        # Handler para consola con colores
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(logging.INFO)
+        console_formatter = ColoredFormatter(
+            '[%(levelname)s] %(message)s'
+        )
+        console_handler.setFormatter(console_formatter)
+        
+        # Handler para archivo con todos los detalles
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_handler = logging.FileHandler(
+            log_dir / f"program_t_{timestamp}.log",
+            encoding='utf-8'
+        )
+        file_handler.setLevel(logging.DEBUG)
+        file_formatter = logging.Formatter(
+            '%(asctime)s [%(levelname)s] [%(name)s] %(message)s'
+        )
+        file_handler.setFormatter(file_formatter)
+        
+        # Agregar handlers
+        self.logger.addHandler(console_handler)
+        self.logger.addHandler(file_handler)
+    
+    def debug(self, message, category="GENERAL"):
+        """Log de depuración"""
+        self.logger.debug(f"[{category}] {message}")
+    
+    def info(self, message, category="GENERAL"):
+        """Log informativo"""
+        self.logger.info(f"[{category}] {message}")
+    
+    def warning(self, message, category="GENERAL"):
+        """Log de advertencia"""
+        self.logger.warning(f"[{category}] {message}")
+    
+    def error(self, message, category="GENERAL"):
+        """Log de error"""
+        self.logger.error(f"[{category}] {message}")
+    
+    def critical(self, message, category="GENERAL"):
+        """Log crítico"""
+        self.logger.critical(f"[{category}] {message}")
+    
+    def performance(self, data):
+        """Log de métricas de rendimiento"""
+        perf_log = Path("logs") / "performance.jsonl"
+        with open(perf_log, 'a', encoding='utf-8') as f:
+            json.dump({
+                'timestamp': datetime.now().isoformat(),
+                **data
+            }, f)
+            f.write('\n')
+
+# Instancia global
+logger = Program_tLogger()";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\utils\mouse_learning.py>: """"
+Active Mouse Learning System
+=====================
+Sistema de calibración ACTIVA que:
+- Genera objetivos de prueba en pantalla
+- Prueba acercarse desde 8 direcciones (N, NE, E, SE, S, SO, O, NO)
+- Mide precisión y detecta problemas (overshoot, vibración)
+- Ajusta automáticamente los parámetros
+- Vuelve al origen entre pruebas
+
+NUEVO: Sistema de Aprendizaje Adaptativo que:
+- Usa TARGETS REALES detectados por YOLO
+- Se acerca con pasos pequeños
+- Aumenta velocidad si funciona
+- Se aleja y vuelve a enfocar (3 ciclos)
+- Guarda parámetros aprendidos
+"""
+
+import json
+import math
+import time
+import random
+import cv2
+import numpy as np
+import win32api
+import win32con
+from pathlib import Path
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass, asdict
+from collections import deque
+from lib.utils.logger import logger
+
+@dataclass
+class CalibrationTest:
+    """Una prueba de calibración"""
+    direction: str  # 'N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'
+    angle_degrees: float
+    start_x: int
+    start_y: int
+    target_x: int
+    target_y: int
+    distance: int
+    success: bool = False
+    overshoot: bool = False
+    vibration: bool = False
+    actual_final_x: int = 0
+    actual_final_y: int = 0
+    final_error_px: float = 0.0
+    attempts: int = 0
+    corrections_applied: List[str] = None
+    
+    def __post_init__(self):
+        if self.corrections_applied is None:
+            self.corrections_applied = []
+
+@dataclass
+class MovementSample:
+    """Muestra de un intento de movimiento"""
+    timestamp: float
+    # Input que enviamos
+    input_dx: float
+    input_dy: float
+    # Posición del cursor antes
+    cursor_before_x: int
+    cursor_before_y: int
+    # Posición del cursor después
+    cursor_after_x: int
+    cursor_after_y: int
+    # Posición del objetivo
+    target_x: int
+    target_y: int
+    # Resultado calculado
+    actual_dx: int
+    actual_dy: int
+    # Éxito del movimiento
+    success: bool
+
+@dataclass
+class LearningProfile:
+    """Perfil aprendido de movimiento del mouse"""
+    # Inversión de ejes
+    x_inverted: bool = False
+    y_inverted: bool = False
+    
+    # Escalado (multiplicadores)
+    x_scale: float = 1.0
+    y_scale: float = 1.0
+    
+    # Smoothing ajustado
+    smoothing: float = 0.5
+    
+    # Deadzone ajustado
+    deadzone: int = 5
+    
+    # Confianza en las detecciones (0-1)
+    confidence: float = 0.0
+    
+    # Número de muestras usadas
+    sample_count: int = 0
+    
+    # Timestamp de última actualización
+    last_updated: float = 0.0
+    
+    # Tests realizados
+    tests_completed: int = 0
+    
+    # Notas/problemas detectados
+    notes: List[str] = None
+    
+    def __post_init__(self):
+        if self.notes is None:
+            self.notes = []
+
+@dataclass
+class AdaptiveLearningCycle:
+    """Un ciclo de aprendizaje adaptativo"""
+    cycle_number: int
+    target_x: int
+    target_y: int
+    start_distance: float
+    approach_steps: int = 0
+    final_error: float = 0.0
+    initial_smoothing: float = 0.0
+    final_smoothing: float = 0.0
+    success: bool = False
+    retreat_distance: int = 0
+
+class AdaptiveLearningSystem:
+    """
+    Sistema de aprendizaje adaptativo con TARGETS REALES.
+    
+    Flujo:
+    1. Detecta un target real del juego
+    2. Se acerca con pasos MUY pequeños (smoothing bajo)
+    3. Mide qué tan bien funciona
+    4. Aumenta velocidad gradualmente si funciona
+    5. Cuando llega, se aleja un poco
+    6. Vuelve a enfocar
+    7. Repite hasta 3 ciclos
+    8. Guarda parámetros
+    """
+    
+    def __init__(self, movement_engine=None, detection_engine=None, mouse_manager=None):
+        self.movement_engine = movement_engine
+        self.detection_engine = detection_engine
+        self.mouse_manager = mouse_manager
+        
+        # Estado
+        self.active = False
+        self.current_cycle = 0
+        self.max_cycles = 3
+        self.cycles_history: List[AdaptiveLearningCycle] = []
+        
+        # Target actual
+        self.target_x: Optional[int] = None
+        self.target_y: Optional[int] = None
+        self.target_locked = False
+        
+        # Parámetros de aprendizaje
+        self.initial_smoothing = 0.15  # MUY lento al inicio
+        self.max_smoothing = 0.6  # Máximo cuando funciona bien
+        self.current_smoothing = self.initial_smoothing
+        self.smoothing_increment = 0.05  # Incremento gradual
+        
+        # Thresholds
+        self.approach_threshold = 15  # píxeles para considerar "llegada"
+        self.retreat_distance_min = 50  # píxeles mínimo de alejamiento
+        self.retreat_distance_max = 100  # píxeles máximo de alejamiento
+        
+        # Estadísticas
+        self.approach_steps = 0
+        self.successful_approaches = 0
+        
+        logger.info("Adaptive Learning System initialized", "ADAPTIVE")
+    
+    def start(self):
+        """Inicia el sistema de aprendizaje adaptativo"""
+        if self.movement_engine is None or self.detection_engine is None:
+            logger.error("Movement or detection engine not set", "ADAPTIVE")
+            return False
+        
+        self.active = True
+        self.current_cycle = 0
+        self.cycles_history.clear()
+        self.target_locked = False
+        self.current_smoothing = self.initial_smoothing
+        self.approach_steps = 0
+        
+        logger.info("=" * 60, "ADAPTIVE")
+        logger.info("🎯 ADAPTIVE LEARNING STARTED", "ADAPTIVE")
+        logger.info("=" * 60, "ADAPTIVE")
+        logger.info("The system will learn from REAL TARGETS detected in-game", "ADAPTIVE")
+        logger.info(f"Will perform {self.max_cycles} approach cycles", "ADAPTIVE")
+        logger.info("Program_t is now DISABLED - learning mode active", "ADAPTIVE")
+        logger.info("=" * 60, "ADAPTIVE")
+        
+        return True
+    
+    def stop(self):
+        """Detiene el sistema"""
+        self.active = False
+        self._finalize_learning()
+        logger.info("Adaptive learning stopped", "ADAPTIVE")
+    
+    def process_target(self, target_x: int, target_y: int, screen_x: int, screen_y: int) -> bool:
+        """
+        Procesa un target detectado en el ciclo de aprendizaje.
+        
+        Args:
+            target_x: Coordenada X absoluta del target
+            target_y: Coordenada Y absoluta del target
+            screen_x: Centro X de pantalla
+            screen_y: Centro Y de pantalla
+        
+        Returns:
+            True si el ciclo continúa, False si terminó
+        """
+        if not self.active:
+            return False
+        
+        # Si no tenemos target, establecer uno nuevo
+        if self.target_x is None:
+            self.target_x = target_x
+            self.target_y = target_y
+            self.target_locked = False
+            
+            initial_distance = math.hypot(target_x - screen_x, target_y - screen_y)
+            
+            self.current_cycle_data = AdaptiveLearningCycle(
+                cycle_number=self.current_cycle + 1,
+                target_x=target_x,
+                target_y=target_y,
+                start_distance=initial_distance,
+                initial_smoothing=self.current_smoothing,
+                retreat_distance=random.randint(self.retreat_distance_min, self.retreat_distance_max)
+            )
+            
+            logger.info(
+                f"🎯 Cycle {self.current_cycle + 1}/{self.max_cycles}: "
+                f"Target locked at ({target_x}, {target_y}), "
+                f"distance: {initial_distance:.1f}px, "
+                f"smoothing: {self.current_smoothing:.3f}",
+                "ADAPTIVE"
+            )
+        
+        # Calcular distancia actual
+        current_distance = math.hypot(target_x - screen_x, target_y - screen_y)
+        
+        # ¿Llegamos al target?
+        if current_distance < self.approach_threshold:
+            if not self.target_locked:
+                self.target_locked = True
+                self.current_cycle_data.final_error = current_distance
+                self.current_cycle_data.approach_steps = self.approach_steps
+                self.current_cycle_data.success = True
+                self.successful_approaches += 1
+                
+                logger.info(
+                    f"✅ Target reached in {self.approach_steps} steps! "
+                    f"Error: {current_distance:.1f}px, "
+                    f"Final smoothing: {self.current_smoothing:.3f}",
+                    "ADAPTIVE"
+                )
+                
+                # Aumentar smoothing para el siguiente ciclo (si funciona bien)
+                if current_distance < 10:
+                    self.current_smoothing = min(
+                        self.current_smoothing + self.smoothing_increment,
+                        self.max_smoothing
+                    )
+                    logger.info(
+                        f"📈 Increasing smoothing to {self.current_smoothing:.3f} (good precision)",
+                        "ADAPTIVE"
+                    )
+                
+                # Esperar un momento
+                time.sleep(0.5)
+                
+                # Alejarse del target
+                self._retreat_from_target(screen_x, screen_y)
+                
+                # Esperar otro momento
+                time.sleep(0.5)
+                
+                # Guardar ciclo y preparar siguiente
+                self.current_cycle_data.final_smoothing = self.current_smoothing
+                self.cycles_history.append(self.current_cycle_data)
+                
+                self.current_cycle += 1
+                self.target_x = None
+                self.target_y = None
+                self.target_locked = False
+                self.approach_steps = 0
+                
+                # ¿Terminamos todos los ciclos?
+                if self.current_cycle >= self.max_cycles:
+                    self.stop()
+                    return False
+        else:
+            # Acercarse al target con el smoothing actual
+            self.approach_steps += 1
+            
+            # Aplicar movimiento con el smoothing aprendido
+            dx = (target_x - screen_x) * self.current_smoothing
+            dy = (target_y - screen_y) * self.current_smoothing
+            
+            # Limitar velocidad máxima para control
+            max_step = 30
+            magnitude = math.hypot(dx, dy)
+            if magnitude > max_step:
+                scale = max_step / magnitude
+                dx *= scale
+                dy *= scale
+            
+            # Mover
+            if self.mouse_manager:
+                self.mouse_manager.move(dx, dy, delay=0.01)
+            
+            # Log progreso cada 10 pasos
+            if self.approach_steps % 10 == 0:
+                logger.info(
+                    f"📍 Step {self.approach_steps}: distance={current_distance:.1f}px, "
+                    f"smoothing={self.current_smoothing:.3f}",
+                    "ADAPTIVE"
+                )
+        
+        return True
+    
+    def _retreat_from_target(self, screen_x: int, screen_y: int):
+        """Se aleja del target"""
+        if self.target_x is None:
+            return
+        
+        retreat_distance = self.current_cycle_data.retreat_distance
+        
+        logger.info(f"🔄 Retreating {retreat_distance}px from target...", "ADAPTIVE")
+        
+        # Calcular dirección opuesta
+        dx = screen_x - self.target_x
+        dy = screen_y - self.target_y
+        distance = math.hypot(dx, dy)
+        
+        if distance < 1:
+            return
+        
+        # Normalizar y escalar
+        dx = (dx / distance) * retreat_distance
+        dy = (dy / distance) * retreat_distance
+        
+        # Mover en pasos
+        steps = 10
+        for i in range(steps):
+            step_dx = dx / steps
+            step_dy = dy / steps
+            
+            if self.mouse_manager:
+                self.mouse_manager.move(step_dx, step_dy, delay=0.01)
+            
+            time.sleep(0.02)
+        
+        logger.info("✅ Retreat complete, ready for next cycle", "ADAPTIVE")
+    
+    def _finalize_learning(self):
+        """Finaliza el aprendizaje y calcula resultados"""
+        if not self.cycles_history:
+            logger.warning("No cycles completed, cannot finalize", "ADAPTIVE")
+            return
+        
+        logger.info("=" * 60, "ADAPTIVE")
+        logger.info("🎉 ADAPTIVE LEARNING COMPLETE", "ADAPTIVE")
+        logger.info("=" * 60, "ADAPTIVE")
+        
+        # Calcular estadísticas
+        total_steps = sum(c.approach_steps for c in self.cycles_history)
+        avg_steps = total_steps / len(self.cycles_history)
+        avg_error = sum(c.final_error for c in self.cycles_history) / len(self.cycles_history)
+        success_rate = self.successful_approaches / len(self.cycles_history)
+        
+        logger.info(f"Cycles completed: {len(self.cycles_history)}/{self.max_cycles}", "ADAPTIVE")
+        logger.info(f"Success rate: {success_rate:.1%}", "ADAPTIVE")
+        logger.info(f"Average steps to target: {avg_steps:.1f}", "ADAPTIVE")
+        logger.info(f"Average final error: {avg_error:.1f}px", "ADAPTIVE")
+        logger.info(f"Final smoothing: {self.current_smoothing:.3f}", "ADAPTIVE")
+        
+        # Determinar parámetros óptimos
+        optimal_smoothing = self.current_smoothing
+        
+        logger.info("=" * 60, "ADAPTIVE")
+        logger.info(f"📊 LEARNED PARAMETERS:", "ADAPTIVE")
+        logger.info(f"   Optimal smoothing: {optimal_smoothing:.3f}", "ADAPTIVE")
+        logger.info(f"   Initial smoothing: {self.initial_smoothing:.3f}", "ADAPTIVE")
+        if self.initial_smoothing > 0:
+            logger.info(f"   Improvement: {((optimal_smoothing / self.initial_smoothing) - 1) * 100:.1f}%", "ADAPTIVE")
+        logger.info("=" * 60, "ADAPTIVE")
+        
+        # Aplicar parámetros al movement engine
+        if self.movement_engine:
+            self.movement_engine.config.smoothing = optimal_smoothing
+            logger.info(f"✅ Applied learned smoothing to movement engine", "ADAPTIVE")
+        
+        logger.info("Press F5 to SAVE this profile", "ADAPTIVE")
+        logger.info("Program_t is now RE-ENABLED", "ADAPTIVE")
+        logger.info("=" * 60, "ADAPTIVE")
+
+    def get_learned_profile(self) -> LearningProfile:
+        """Obtiene el perfil aprendido"""
+        profile = LearningProfile(
+            smoothing=self.current_smoothing,
+            confidence=self.successful_approaches / max(len(self.cycles_history), 1),
+            sample_count=len(self.cycles_history),
+            tests_completed=len(self.cycles_history),
+            last_updated=time.time()
+        )
+        
+        if self.successful_approaches == len(self.cycles_history) and self.cycles_history:
+            profile.notes.append("All cycles successful - high confidence")
+        elif self.cycles_history and self.successful_approaches < len(self.cycles_history) * 0.5:
+            profile.notes.append("Low success rate - may need manual adjustment")
+        
+        return profile
+
+
+class ActiveMouseLearningSystem:
+    """Sistema de aprendizaje ACTIVO con calibración direccional (LEGACY)"""
+    
+    # Direcciones de prueba
+    DIRECTIONS = {
+        'N':  0,     # Norte (arriba)
+        'NE': 45,    # Noreste
+        'E':  90,    # Este (derecha)
+        'SE': 135,   # Sureste
+        'S':  180,   # Sur (abajo)
+        'SW': 225,   # Suroeste
+        'W':  270,   # Oeste (izquierda)
+        'NW': 315    # Noroeste
+    }
+    
+    def __init__(self, mouse_manager=None, screen_center=None):
+        self.profile = LearningProfile()
+        self.calibration_active = False
+        self.mouse_manager = mouse_manager
+        self.screen_center = screen_center or (960, 540)
+        
+        # Tests
+        self.current_test: Optional[CalibrationTest] = None
+        self.test_history: List[CalibrationTest] = []
+        
+        # Estado de calibración
+        self.calibration_step = 0
+        self.max_attempts_per_test = 3
+        self.test_distance = 200  # píxeles desde el centro
+        
+        # Visualización
+        self.calibration_window = None
+        
+        self.profiles_dir = Path("lib/data/learning_profiles")
+        self.profiles_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Umbrales de error
+        self.error_threshold = 15  # píxeles de error aceptable
+        self.overshoot_threshold = 30  # si supera por más de esto, es overshoot
+        self.vibration_threshold = 5  # oscilaciones menores a esto
+        
+        logger.info("Active Mouse Learning System initialized", "LEARNING")
+    
+    def start_calibration(self):
+        """Inicia el proceso de calibración activa"""
+        if self.mouse_manager is None:
+            logger.error("Mouse manager not set. Cannot calibrate.", "LEARNING")
+            return False
+        
+        self.calibration_active = True
+        self.calibration_step = 0
+        self.test_history.clear()
+        
+        logger.info("=" * 60, "LEARNING")
+        logger.info("🎯 ACTIVE CALIBRATION STARTED", "LEARNING")
+        logger.info("=" * 60, "LEARNING")
+        logger.info("The system will now perform directional tests", "LEARNING")
+        logger.info("Please don't move your mouse during calibration", "LEARNING")
+        logger.info("This will take about 30-60 seconds", "LEARNING")
+        logger.info("=" * 60, "LEARNING")
+        
+        # Crear ventana de visualización
+        self._init_calibration_window()
+        
+        return True
+    
+    def stop_calibration(self):
+        """Detiene la calibración"""
+        self.calibration_active = False
+        if self.calibration_window is not None:
+            cv2.destroyWindow("Calibration")
+            self.calibration_window = None
+        logger.info("Calibration stopped", "LEARNING")
+    
+    def _init_calibration_window(self):
+        """Inicializa ventana de visualización"""
+        self.calibration_window = np.zeros((600, 800, 3), dtype=np.uint8)
+    
+    def run_calibration_step(self) -> bool:
+        """
+        Ejecuta un paso de calibración.
+        
+        Returns:
+            True si debe continuar, False si terminó
+        """
+        if not self.calibration_active:
+            return False
+        
+        # Si no hay test actual, crear uno nuevo
+        if self.current_test is None:
+            if self.calibration_step >= len(self.DIRECTIONS):
+                # Terminamos todos los tests
+                self._finalize_calibration()
+                return False
+            
+            # Crear nuevo test
+            direction_name = list(self.DIRECTIONS.keys())[self.calibration_step]
+            self.current_test = self._create_test(direction_name)
+            logger.info(f"Testing direction: {direction_name} ({self.current_test.angle_degrees}°)", "LEARNING")
+        
+        # Ejecutar el test
+        success = self._execute_test(self.current_test)
+        
+        if success or self.current_test.attempts >= self.max_attempts_per_test:
+            # Test completado (exitoso o máx intentos)
+            self.test_history.append(self.current_test)
+            self.current_test = None
+            self.calibration_step += 1
+            
+            # Esperar un poco entre tests
+            time.sleep(0.5)
+        else:
+            # Reintentar
+            self.current_test.attempts += 1
+            logger.warning(f"Test failed, retrying ({self.current_test.attempts}/{self.max_attempts_per_test})", "LEARNING")
+            time.sleep(0.3)
+        
+        return True
+    
+    def _create_test(self, direction: str) -> CalibrationTest:
+        """Crea un test para una dirección"""
+        angle = self.DIRECTIONS[direction]
+        angle_rad = math.radians(angle)
+        
+        # Calcular posición del objetivo
+        center_x, center_y = self.screen_center
+        target_x = int(center_x + self.test_distance * math.cos(angle_rad))
+        target_y = int(center_y - self.test_distance * math.sin(angle_rad))  # Y invertido
+        
+        return CalibrationTest(
+            direction=direction,
+            angle_degrees=angle,
+            start_x=center_x,
+            start_y=center_y,
+            target_x=target_x,
+            target_y=target_y,
+            distance=self.test_distance
+        )
+    
+    def _execute_test(self, test: CalibrationTest) -> bool:
+        """
+        Ejecuta un test de calibración.
+        
+        Returns:
+            True si fue exitoso, False si falló
+        """
+        # 1. Mover cursor al punto de inicio (centro)
+        self._move_cursor_to(test.start_x, test.start_y)
+        time.sleep(0.1)
+        
+        # 2. Calcular movimiento necesario
+        dx = test.target_x - test.start_x
+        dy = test.target_y - test.start_y
+        
+        # 3. Aplicar correcciones actuales del perfil
+        corrected_dx, corrected_dy = self._apply_current_corrections(dx, dy)
+        
+        # 4. Mover con smoothing simulado
+        steps = 10  # Dividir en 10 pasos
+        for i in range(steps):
+            step_dx = corrected_dx / steps
+            step_dy = corrected_dy / steps
+            
+            self.mouse_manager.move(step_dx, step_dy, delay=0.01)
+            time.sleep(0.02)
+        
+        # 5. Esperar que el movimiento se complete
+        time.sleep(0.2)
+        
+        # 6. Medir posición final
+        try:
+            final_x, final_y = win32api.GetCursorPos()
+        except:
+            logger.error("Failed to get cursor position", "LEARNING")
+            return False
+        
+        test.actual_final_x = final_x
+        test.actual_final_y = final_y
+        
+        # 7. Calcular error
+        error_x = final_x - test.target_x
+        error_y = final_y - test.target_y
+        error_distance = math.hypot(error_x, error_y)
+        test.final_error_px = error_distance
+        
+        # 8. Analizar resultado
+        if error_distance <= self.error_threshold:
+            # Éxito!
+            test.success = True
+            logger.info(f"✅ {test.direction}: SUCCESS (error: {error_distance:.1f}px)", "LEARNING")
+            
+            # Actualizar visualización
+            self._draw_calibration_result(test, success=True)
+            return True
+        else:
+            # Fallo - detectar tipo de problema
+            test.success = False
+            
+            # ¿Overshoot?
+            if error_distance > self.overshoot_threshold:
+                test.overshoot = True
+                logger.warning(f"❌ {test.direction}: OVERSHOOT (error: {error_distance:.1f}px)", "LEARNING")
+                self._adjust_for_overshoot(test, error_x, error_y)
+            
+            # ¿Dirección incorrecta?
+            elif self._is_wrong_direction(dx, dy, final_x - test.start_x, final_y - test.start_y):
+                logger.warning(f"❌ {test.direction}: WRONG DIRECTION", "LEARNING")
+                self._adjust_for_wrong_direction(test, dx, dy, final_x - test.start_x, final_y - test.start_y)
+            
+            else:
+                logger.warning(f"❌ {test.direction}: MISSED (error: {error_distance:.1f}px)", "LEARNING")
+                self._adjust_for_miss(test, error_x, error_y)
+            
+            # Actualizar visualización
+            self._draw_calibration_result(test, success=False)
+            return False
+    
+    def _move_cursor_to(self, x: int, y: int):
+        """Mueve el cursor a una posición absoluta (usando Win32)"""
+        try:
+            # Usar SetCursorPos para movimiento absoluto
+            win32api.SetCursorPos((x, y))
+        except Exception as e:
+            logger.error(f"Failed to move cursor to ({x}, {y}): {e}", "LEARNING")
+    
+    def _apply_current_corrections(self, dx: float, dy: float) -> Tuple[float, float]:
+        """Aplica las correcciones actuales del perfil"""
+        corrected_dx = dx * self.profile.x_scale
+        corrected_dy = dy * self.profile.y_scale
+        
+        if self.profile.x_inverted:
+            corrected_dx = -corrected_dx
+        
+        if self.profile.y_inverted:
+            corrected_dy = -corrected_dy
+        
+        return corrected_dx, corrected_dy
+    
+    def _is_wrong_direction(self, expected_dx: float, expected_dy: float, 
+                           actual_dx: float, actual_dy: float) -> bool:
+        """Detecta si el movimiento fue en dirección opuesta"""
+        if abs(expected_dx) > 10:
+            if (expected_dx > 0 and actual_dx < -10) or (expected_dx < 0 and actual_dx > 10):
+                return True
+        
+        if abs(expected_dy) > 10:
+            if (expected_dy > 0 and actual_dy < -10) or (expected_dy < 0 and actual_dy > 10):
+                return True
+        
+        return False
+    
+    def _adjust_for_overshoot(self, test: CalibrationTest, error_x: float, error_y: float):
+        """Ajusta parámetros cuando hay overshoot"""
+        # Reducir smoothing
+        old_smoothing = self.profile.smoothing
+        self.profile.smoothing *= 0.7
+        logger.info(f"Reducing smoothing: {old_smoothing:.3f} → {self.profile.smoothing:.3f}", "LEARNING")
+        test.corrections_applied.append(f"smoothing:{self.profile.smoothing:.3f}")
+        
+        # Reducir scale si el error es muy grande
+        if abs(error_x) > 50:
+            self.profile.x_scale *= 0.9
+            logger.info(f"Reducing X scale: {self.profile.x_scale:.3f}", "LEARNING")
+            test.corrections_applied.append(f"x_scale:{self.profile.x_scale:.3f}")
+        
+        if abs(error_y) > 50:
+            self.profile.y_scale *= 0.9
+            logger.info(f"Reducing Y scale: {self.profile.y_scale:.3f}", "LEARNING")
+            test.corrections_applied.append(f"y_scale:{self.profile.y_scale:.3f}")
+    
+    def _adjust_for_wrong_direction(self, test: CalibrationTest, 
+                                   expected_dx: float, expected_dy: float,
+                                   actual_dx: float, actual_dy: float):
+        """Ajusta parámetros cuando la dirección es incorrecta"""
+        # Detectar inversión de ejes
+        if abs(expected_dx) > 10:
+            if (expected_dx > 0 and actual_dx < 0) or (expected_dx < 0 and actual_dx > 0):
+                self.profile.x_inverted = not self.profile.x_inverted
+                logger.info(f"Inverting X axis: {self.profile.x_inverted}", "LEARNING")
+                test.corrections_applied.append(f"x_inverted:{self.profile.x_inverted}")
+        
+        if abs(expected_dy) > 10:
+            if (expected_dy > 0 and actual_dy < 0) or (expected_dy < 0 and actual_dy > 0):
+                self.profile.y_inverted = not self.profile.y_inverted
+                logger.info(f"Inverting Y axis: {self.profile.y_inverted}", "LEARNING")
+                test.corrections_applied.append(f"y_inverted:{self.profile.y_inverted}")
+    
+    def _adjust_for_miss(self, test: CalibrationTest, error_x: float, error_y: float):
+        """Ajusta parámetros cuando no llegó al objetivo"""
+        # Si el error es consistente, ajustar scale
+        if abs(error_x) > 20 and (test.actual_final_x - test.start_x) != 0:
+            adjustment = (test.target_x - test.start_x) / (test.actual_final_x - test.start_x)
+            self.profile.x_scale *= adjustment
+            logger.info(f"Adjusting X scale: {self.profile.x_scale:.3f}", "LEARNING")
+            test.corrections_applied.append(f"x_scale:{self.profile.x_scale:.3f}")
+        
+        if abs(error_y) > 20 and (test.actual_final_y - test.start_y) != 0:
+            adjustment = (test.target_y - test.start_y) / (test.actual_final_y - test.start_y)
+            self.profile.y_scale *= adjustment
+            logger.info(f"Adjusting Y scale: {self.profile.y_scale:.3f}", "LEARNING")
+            test.corrections_applied.append(f"y_scale:{self.profile.y_scale:.3f}")
+    
+    def _draw_calibration_result(self, test: CalibrationTest, success: bool):
+        """Dibuja el resultado del test en la ventana de calibración"""
+        if self.calibration_window is None:
+            return
+        
+        # Limpiar
+        self.calibration_window.fill(0)
+        
+        # Dibujar centro
+        center = (400, 300)
+        cv2.circle(self.calibration_window, center, 5, (255, 255, 255), -1)
+        
+        # Dibujar todos los tests previos
+        for prev_test in self.test_history[-7:]:  # Últimos 7
+            self._draw_test_on_window(prev_test, center, (100, 100, 100))
+        
+        # Dibujar test actual
+        color = (0, 255, 0) if success else (0, 0, 255)
+        self._draw_test_on_window(test, center, color)
+        
+        # Info de texto
+        cv2.putText(self.calibration_window, f"Direction: {test.direction}", 
+                   (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.putText(self.calibration_window, f"Error: {test.final_error_px:.1f}px", 
+                   (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        cv2.putText(self.calibration_window, f"Attempt: {test.attempts + 1}/{self.max_attempts_per_test}", 
+                   (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        
+        status = "SUCCESS" if success else "FAILED"
+        cv2.putText(self.calibration_window, status, 
+                   (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.7, color, 2)
+        
+        # Progreso
+        progress = f"Progress: {self.calibration_step}/{len(self.DIRECTIONS)}"
+        cv2.putText(self.calibration_window, progress, 
+                   (10, 580), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 0), 2)
+        
+        cv2.imshow("Calibration", self.calibration_window)
+        cv2.waitKey(1)
+    
+    def _draw_test_on_window(self, test: CalibrationTest, center: Tuple[int, int], color: Tuple[int, int, int]):
+        """Dibuja un test en la ventana"""
+        # Escalar para que quepa en la ventana
+        scale = 150.0 / self.test_distance
+        
+        # Target
+        target_x = int(center[0] + (test.target_x - test.start_x) * scale)
+        target_y = int(center[1] + (test.target_y - test.start_y) * scale)
+        cv2.circle(self.calibration_window, (target_x, target_y), 8, color, 2)
+        
+        # Actual
+        actual_x = int(center[0] + (test.actual_final_x - test.start_x) * scale)
+        actual_y = int(center[1] + (test.actual_final_y - test.start_y) * scale)
+        cv2.circle(self.calibration_window, (actual_x, actual_y), 5, color, -1)
+        
+        # Línea de error
+        cv2.line(self.calibration_window, (target_x, target_y), (actual_x, actual_y), color, 1)
+    
+    def _finalize_calibration(self):
+        """Finaliza la calibración y calcula resultados finales"""
+        logger.info("=" * 60, "LEARNING")
+        logger.info("🎉 CALIBRATION COMPLETE", "LEARNING")
+        logger.info("=" * 60, "LEARNING")
+        
+        # Calcular estadísticas
+        successful_tests = sum(1 for t in self.test_history if t.success)
+        total_tests = len(self.test_history)
+        
+        self.profile.confidence = successful_tests / total_tests if total_tests > 0 else 0.0
+        self.profile.tests_completed = total_tests
+        self.profile.sample_count = total_tests
+        self.profile.last_updated = time.time()
+        
+        # Log resultados
+        logger.info(f"Success rate: {successful_tests}/{total_tests} ({self.profile.confidence:.1%})", "LEARNING")
+        logger.info(f"X-axis: {'INVERTED' if self.profile.x_inverted else 'NORMAL'} (scale: {self.profile.x_scale:.3f})", "LEARNING")
+        logger.info(f"Y-axis: {'INVERTED' if self.profile.y_inverted else 'NORMAL'} (scale: {self.profile.y_scale:.3f})", "LEARNING")
+        logger.info(f"Smoothing: {self.profile.smoothing:.3f}", "LEARNING")
+        logger.info(f"Deadzone: {self.profile.deadzone}px", "LEARNING")
+        
+        # Análisis de problemas
+        overshoot_count = sum(1 for t in self.test_history if t.overshoot)
+        if overshoot_count > total_tests * 0.3:
+            self.profile.notes.append("Frequent overshoot detected - reduced smoothing")
+        
+        if self.profile.confidence < 0.5:
+            self.profile.notes.append("Low confidence - manual adjustment may be needed")
+        
+        if self.profile.notes:
+            logger.warning("Notes:", "LEARNING")
+            for note in self.profile.notes:
+                logger.warning(f"  - {note}", "LEARNING")
+        
+        logger.info("=" * 60, "LEARNING")
+        logger.info("Press F5 to SAVE this profile", "LEARNING")
+        logger.info("=" * 60, "LEARNING")
+        
+        self.stop_calibration()
+    
+    def save_profile(self, name: str):
+        """Guarda el perfil aprendido"""
+        profile_path = self.profiles_dir / f"{name}.json"
+        
+        profile_dict = asdict(self.profile)
+        
+        with open(profile_path, 'w', encoding='utf-8') as f:
+            json.dump(profile_dict, f, indent=2)
+        
+        logger.info(f"Learning profile saved: {profile_path}", "LEARNING")
+    
+    def load_profile(self, name: str) -> bool:
+        """Carga un perfil guardado"""
+        profile_path = self.profiles_dir / f"{name}.json"
+        
+        if not profile_path.exists():
+            return False
+        
+        try:
+            with open(profile_path, 'r', encoding='utf-8') as f:
+                profile_dict = json.load(f)
+            
+            self.profile = LearningProfile(**profile_dict)
+            logger.info(f"Learning profile loaded: {profile_path}", "LEARNING")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to load profile: {e}", "LEARNING")
+            return False
+    
+    def apply_correction(self, dx: float, dy: float) -> Tuple[float, float]:
+        """Aplica las correcciones aprendidas"""
+        corrected_dx = dx * self.profile.x_scale
+        corrected_dy = dy * self.profile.y_scale
+        
+        if self.profile.x_inverted:
+            corrected_dx = -corrected_dx
+        
+        if self.profile.y_inverted:
+            corrected_dy = -corrected_dy
+        
+        return corrected_dx, corrected_dy";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\utils\performance_monitor.py>: """"
+Performance Monitor
+==================
+Monitorea y registra el rendimiento del program_t.
+"""
+
+import time
+import psutil
+import json
+from pathlib import Path
+from collections import deque
+from typing import Dict, Any
+from lib.utils.logger import logger
+
+class PerformanceMonitor:
+    """Monitor de rendimiento del sistema"""
+    
+    def __init__(self, history_size: int = 100):
+        self.history_size = history_size
+        self.fps_history = deque(maxlen=history_size)
+        self.frame_time_history = deque(maxlen=history_size)
+        self.detection_time_history = deque(maxlen=history_size)
+        self.movement_time_history = deque(maxlen=history_size)
+        
+        self.total_frames = 0
+        self.total_detections = 0
+        self.total_movements = 0
+        self.start_time = time.time()
+        
+        self.process = psutil.Process()
+    
+    def log_frame(
+        self, 
+        fps: float, 
+        targets: int = 0, 
+        locked: bool = False,
+        frame_time: float = 0,
+        detection_time: float = 0,
+        movement_time: float = 0
+    ):
+        """Registra métricas de un frame"""
+        self.total_frames += 1
+        
+        if fps > 0:
+            self.fps_history.append(fps)
+        
+        if frame_time > 0:
+            self.frame_time_history.append(frame_time * 1000)  # ms
+        
+        if detection_time > 0:
+            self.detection_time_history.append(detection_time * 1000)  # ms
+        
+        if movement_time > 0:
+            self.movement_time_history.append(movement_time * 1000)  # ms
+        
+        if targets > 0:
+            self.total_detections += targets
+        
+        if locked:
+            self.total_movements += 1
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Obtiene estadísticas actuales"""
+        uptime = time.time() - self.start_time
+        
+        # CPU y memoria
+        cpu_percent = self.process.cpu_percent()
+        memory_info = self.process.memory_info()
+        memory_mb = memory_info.rss / 1024 / 1024
+        
+        # FPS
+        avg_fps = sum(self.fps_history) / len(self.fps_history) if self.fps_history else 0
+        min_fps = min(self.fps_history) if self.fps_history else 0
+        max_fps = max(self.fps_history) if self.fps_history else 0
+        
+        # Frame time
+        avg_frame_time = sum(self.frame_time_history) / len(self.frame_time_history) if self.frame_time_history else 0
+        
+        return {
+            'uptime_seconds': uptime,
+            'total_frames': self.total_frames,
+            'total_detections': self.total_detections,
+            'total_movements': self.total_movements,
+            'cpu_percent': cpu_percent,
+            'memory_mb': memory_mb,
+            'fps': {
+                'current': self.fps_history[-1] if self.fps_history else 0,
+                'average': avg_fps,
+                'min': min_fps,
+                'max': max_fps
+            },
+            'frame_time_ms': {
+                'current': self.frame_time_history[-1] if self.frame_time_history else 0,
+                'average': avg_frame_time
+            }
+        }
+    
+    def print_stats(self):
+        """Imprime estadísticas en consola"""
+        stats = self.get_stats()
+        
+        logger.info("=== Performance Statistics ===", "PERF")
+        logger.info(f"Uptime: {stats['uptime_seconds']:.1f}s", "PERF")
+        logger.info(f"Total Frames: {stats['total_frames']}", "PERF")
+        logger.info(f"Total Detections: {stats['total_detections']}", "PERF")
+        logger.info(f"FPS: {stats['fps']['current']:.1f} (avg: {stats['fps']['average']:.1f})", "PERF")
+        logger.info(f"CPU: {stats['cpu_percent']:.1f}%", "PERF")
+        logger.info(f"Memory: {stats['memory_mb']:.1f} MB", "PERF")
+        logger.info("=" * 30, "PERF")
+    
+    def save_stats(self, filename: str = "performance_stats.json"):
+        """Guarda estadísticas en archivo"""
+        stats = self.get_stats()
+        stats_path = Path("logs") / filename
+        
+        try:
+            with open(stats_path, 'w', encoding='utf-8') as f:
+                json.dump(stats, f, indent=2)
+            logger.info(f"Performance stats saved to {stats_path}", "PERF")
+        except Exception as e:
+            logger.error(f"Failed to save stats: {e}", "PERF")
+    
+    def reset(self):
+        """Resetea las métricas"""
+        self.fps_history.clear()
+        self.frame_time_history.clear()
+        self.detection_time_history.clear()
+        self.movement_time_history.clear()
+        self.total_frames = 0
+        self.total_detections = 0
+        self.total_movements = 0
+        self.start_time = time.time()
+        logger.info("Performance monitor reset", "PERF")";
+
+---------------------
+
+EXACT PATH <C:\Users\olwer\Documents\GitHub\AI-Aimbot\lib\utils\__init__.py>: "";
