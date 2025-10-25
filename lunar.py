@@ -33,8 +33,9 @@ if platform.system() == "Windows":
         try:
             ctypes.windll.user32.SetProcessDPIAware()
         except Exception as e:
-            # Si todo falla, advertimos al usuario.
-            print(f"[AVISO] No se pudo establecer la conciencia de PPP (DPI). La resolución puede ser incorrecta en pantallas con escalado: {e}")
+            # If everything fails, warn the user via logger.
+            from lib.utils.logger import logger
+            logger.warning(f"Could not set DPI awareness. Resolution might be incorrect on scaled displays: {e}", "MAIN")
 # ===================== FIN DE LA SOLUCIÓN - CORRECCIÓN DPI =====================
 
 

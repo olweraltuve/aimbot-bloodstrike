@@ -138,14 +138,14 @@ class ProgramTEngine:
     
     def _init_model(self):
         """Inicializa modelo YOLO"""
-        model_path = 'lib/yoloe-11l-seg.pt'
+        model_path = Path('lib') / 'yoloe-11l-seg.pt'
         logger.info("=" * 60, "ENGINE")
         logger.info("LOADING AI MODEL", "ENGINE")
         logger.info("=" * 60, "ENGINE")
         logger.info(f"Model file: {model_path}", "ENGINE")
         logger.info("Model type: YOLOE (YOLO11-based) - Open Vocabulary Detection + Segmentation", "ENGINE")
         
-        self.model = YOLO(model_path)
+        self.model = YOLO(str(model_path))
         
         # Poner el modelo en modo evaluación (necesario para get_text_pe)
         self.model.eval()

@@ -1,135 +1,135 @@
-# 🧠 YOLO-World v2 AI Program_t - Lunar LITE v2.0
+# 🧠 YOLO-World v2 AI Assistance Program - Lunar LITE v2.0
 
-**Lunar LITE v2.0** es una versión completamente reescrita y mejorada del program_t original [Lunar](https://github.com/zeyad-mansour/lunar).
+**Lunar LITE v2.0** is a completely rewritten and improved version of the original [Lunar](https://github.com/zeyad-mansour/lunar) program.
 
-## 🌍 **NUEVO: YOLO-World v2 - Detección de Humanoides**
+## 🌍 **NEW: YOLO-World v2 - Humanoid Detection**
 
-Esta versión utiliza **YOLOv8-World v2**, un modelo revolucionario de detección zero-shot:
+This version uses **YOLOv8-World v2**, a revolutionary zero-shot detection model:
 
-- 🎯 **Detección de Humanoides Mejorada**: Usa prompts de texto ("person", "human", "player", "character")
-- ⚡ **Zero-Shot Detection**: No requiere entrenamiento adicional
-- 🎨 **Interfaz Limpia**: Sin texto sobre las detecciones, solo indicadores visuales
-- 🔧 **Personalizable**: Cambia las clases detectadas fácilmente
+- 🎯 **Improved Humanoid Detection**: Uses text prompts ("person", "human", "player", "character")
+- ⚡ **Zero-Shot Detection**: No additional training required
+- 🎨 **Clean Interface**: No text overlays on detections, only visual indicators
+- 🔧 **Customizable**: Easily change detected classes
 
-> 📖 Ver guía completa: [docs/YOLO_WORLD_SETUP.md](docs/YOLO_WORLD_SETUP.md)
-
----
-
-## ✨ Novedades en v2.0
-
-### 🎮 **Soporte Multi-Juego**
-- Perfiles optimizados para múltiples juegos (Fortnite, Valorant, Apex Legends)
-- Sistema de calibración automática
-- Configuración por juego con parámetros específicos
-
-### 🔧 **Arquitectura Modular**
-- Motor de detección separado y mejorado
-- Motor de movimiento con humanización avanzada
-- Sistema de captura con auto-detección de método óptimo
-- Gestión de mouse con fallback automático
-
-### 📊 **Monitoreo de Rendimiento**
-- Métricas de FPS en tiempo real
-- Logging detallado con niveles
-- Estadísticas de uso de CPU/memoria
-- Logs separados por categoría
-
-### 🎯 **Mejoras en Precisión**
-- Target stickiness (reduce cambios erráticos)
-- Deadzone configurable
-- Humanización de movimientos (curvas Bézier, ruido, overshoot)
-- Aceleración/desaceleración dinámica
-
-### 🛡️ **Mejoras Anti-Detección**
-- Soporte DDXoft (kernel-level, baja detección)
-- Movimientos humanizados con aleatoriedad
-- Trigger bot con delays variables
-- Sistema de captura compatible con pantalla completa
+> 📖 See complete guide: [docs/YOLO_WORLD_SETUP.md](docs/YOLO_WORLD_SETUP.md)
 
 ---
 
-## 🚀 Instalación
+## ✨ What's New in v2.0
 
-### Requisitos Previos
+### 🎮 **Multi-Game Support**
+- Optimized profiles for multiple games (Fortnite, Valorant, Apex Legends)
+- Automatic calibration system
+- Game-specific configuration with custom parameters
+
+### 🔧 **Modular Architecture**
+- Separate and improved detection engine
+- Advanced humanization movement engine
+- Capture system with auto-detection of optimal method
+- Mouse management with automatic fallback
+
+### 📊 **Performance Monitoring**
+- Real-time FPS metrics
+- Detailed logging with levels
+- CPU/memory usage statistics
+- Category-separated logs
+
+### 🎯 **Precision Improvements**
+- Target stickiness (reduces erratic changes)
+- Configurable deadzone
+- Movement humanization (Bézier curves, noise, overshoot)
+- Dynamic acceleration/deceleration
+
+### 🛡️ **Detection Mitigation Improvements**
+- DDXoft support (kernel-level, low detection signature)
+- Humanized movements with randomness
+- Trigger system with variable delays
+- Fullscreen-compatible capture system
+
+---
+
+## 🚀 Installation
+
+### Prerequisites
 - Windows 10/11
-- Python 3.12 o 3.13
-- NVIDIA GPU con CUDA (recomendado para mejor rendimiento)
+- Python 3.12 or 3.13
+- NVIDIA GPU with CUDA (recommended for better performance)
 - 4GB+ RAM
 
-### Instalación Automática
+### Automatic Installation
 
-1. **Clonar el repositorio:**
+1. **Clone the repository:**
 ```bash
 git clone https://github.com/tu-usuario/AI-Program_t.git
 cd AI-Program_t
 ```
 
-2. **Ejecutar setup:**
+2. **Run setup:**
 ```batch
 setup_cuda.bat
 ```
 
-3. **Descargar modelo YOLO-World v2:**
+3. **Download YOLO-World v2 model:**
 ```batch
 download_yolov8_world.bat
 ```
-> El modelo se descargará automáticamente en el primer inicio si no lo haces manualmente.
+> The model will automatically download on first startup if not done manually.
 
-4. **Iniciar el program_t:**
+4. **Start the program:**
 ```batch
 start.bat
 ```
 
-### Instalación Manual
+### Manual Installation
 
-1. **Instalar Python 3.13:**
+1. **Install Python 3.13:**
 ```batch
 install_python313.bat
 ```
 
-2. **Crear entorno virtual:**
+2. **Create virtual environment:**
 ```batch
 python -m venv venv_cuda
 venv_cuda\Scripts\activate
 ```
 
-3. **Instalar dependencias:**
+3. **Install dependencies:**
 ```batch
 pip install -r requirements_cuda.txt
 ```
 
 ---
 
-## ⚙️ Configuración
+## ⚙️ Configuration
 
-### 🎮 Calibración Rápida (Recomendado)
+### 🎮 Quick Calibration (Recommended)
 
 ```batch
 start_calibration.bat
 ```
 
-El asistente te guiará para:
-1. Seleccionar tu juego
-2. Calibrar sensibilidad (si es necesario)
-3. Elegir método de captura
-4. Configurar método de mouse
+The wizard will guide you through:
+1. Selecting your game
+2. Calibrating sensitivity (if needed)
+3. Choosing capture method
+4. Configuring mouse method
 
-### 📝 Perfiles de Juego Disponibles
+### 📝 Available Game Profiles
 
-| Juego | ID | Características |
+| Game | ID | Features |
 |-------|-----|----------------|
-| **Fortnite** | `fortnite` | FOV grande, movimiento rápido |
-| **Valorant** | `valorant` | Precisión extrema, headshot focus |
-| **Apex Legends** | `apex_legends` | Movimiento muy rápido, tracking |
-| **Custom** | `custom` | Personalizable para otros juegos |
+| **Fortnite** | `fortnite` | Large FOV, fast movement |
+| **Valorant** | `valorant` | Extreme precision, headshot focus |
+| **Apex Legends** | `apex_legends` | Very fast movement, tracking |
+| **Custom** | `custom` | Customizable for other games |
 
-### 🎯 Usar un Perfil Específico
+### 🎯 Use a Specific Profile
 
 ```batch
 python lunar.py --profile valorant
 ```
 
-### 📋 Listar Perfiles Disponibles
+### 📋 List Available Profiles
 
 ```batch
 python lunar.py --list-profiles
@@ -137,259 +137,259 @@ python lunar.py --list-profiles
 
 ---
 
-## 🎮 Uso
+## 🎮 Usage
 
-### Controles de Teclado
+### Keyboard Controls
 
-| Tecla | Acción |
+| Key | Action |
 |-------|--------|
-| **F1** | Activar/Desactivar program_t |
-| **F2** | Salir del programa |
-| **F3** | Mostrar estadísticas de rendimiento |
+| **F1** | Enable/Disable assistance |
+| **F2** | Exit program |
+| **F3** | Show performance statistics |
 
-### Opciones de Línea de Comandos
+### Command Line Options
 
 ```batch
-# Modo normal
+# Normal mode
 python lunar.py
 
-# Con calibración
+# With calibration
 python lunar.py --calibrate
 
-# Perfil específico
+# Specific profile
 python lunar.py --profile fortnite
 
-# Modo debug
+# Debug mode
 python lunar.py --debug
 
-# Sin verificación de admin
+# No admin check
 python lunar.py --no-admin
 
-# Listar perfiles
+# List profiles
 python lunar.py --list-profiles
 ```
 
 ---
 
-## 🔧 Solución de Problemas
+## 🔧 Troubleshooting
 
-### ❌ El program_t solo funciona cuando haces Alt+Tab (no funciona en el juego)
+### ❌ The program only works when you Alt+Tab (doesn't work in the game)
 
-**Causa:** Problema de captura de pantalla con juegos en pantalla completa.
+**Cause:** Screen capture issue with fullscreen games.
 
-**Solución:**
-1. **Cambiar el juego a MODO VENTANA SIN BORDES** (más confiable)
-2. O ejecutar calibración y seleccionar método `BitBlt`
-3. O editar `lib/config/user_config.json`:
+**Solution:**
+1. **Change the game to BORDERLESS WINDOW MODE** (more reliable)
+2. Or run calibration and select `BitBlt` method
+3. Or edit `lib/config/user_config.json`:
 ```json
 {
   "capture_method": "bitblt"
 }
 ```
 
-### ❌ El program_t detecta pero no mueve el mouse
+### ❌ The program detects but doesn't move the mouse
 
-**Causa:** Método de mouse no compatible o sin permisos de admin.
+**Cause:** Mouse method not compatible or no admin permissions.
 
-**Solución:**
-1. **Ejecutar como ADMINISTRADOR:** `start_admin.bat`
-2. O ejecutar calibración y probar ambos métodos
-3. Verificar que `lib/mouse/dd40605x64.dll` existe
-4. Si DDXoft falla, el sistema cambiará a Win32 automáticamente
+**Solution:**
+1. **Run as ADMINISTRATOR:** `start_admin.bat`
+2. Or run calibration and test both methods
+3. Verify that `lib/mouse/dd40605x64.dll` exists
+4. If DDXoft fails, the system will automatically switch to Win32
 
 ### ❌ Error "CUDA IS UNAVAILABLE"
 
-**Solución:**
+**Solution:**
 ```batch
-# Para RTX 5060 (sm_120):
+# For RTX 5060 (sm_120):
 pip uninstall torch torchvision torchaudio -y
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
-# Para otras GPUs:
+# For other GPUs:
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
 ```
 
-### ❌ El mouse se mueve muy rápido/lento
+### ❌ Mouse moves too fast/slow
 
-**Solución:**
-Editar `lib/config/game_profiles.json` y ajustar:
+**Solution:**
+Edit `lib/config/game_profiles.json` and adjust:
 ```json
 {
   "movement": {
-    "smoothing": 0.7,  // Más bajo = más lento (0.3-1.0)
-    "max_move_speed": 100  // Velocidad máxima
+    "smoothing": 0.7,  // Lower = slower (0.3-1.0)
+    "max_move_speed": 100  // Maximum speed
   }
 }
 ```
 
-### ❌ La detección es imprecisa
+### ❌ Detection is inaccurate
 
-**Solución:**
-Ajustar en `lib/config/game_profiles.json`:
+**Solution:**
+Adjust in `lib/config/game_profiles.json`:
 ```json
 {
   "detection": {
-    "confidence": 0.50,  // Más alto = más estricto (0.4-0.7)
-    "fov": 300  // Más bajo = área más pequeña
+    "confidence": 0.50,  // Higher = more strict (0.4-0.7)
+    "fov": 300  // Lower = smaller area
   }
 }
 ```
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 AI-Program_t/
 ├── lib/
-│   ├── core/              # Motores principales
+│   ├── core/              # Main engines
 │   │   ├── program_t_engine.py
 │   │   ├── detection_engine.py
 │   │   └── movement_engine.py
-│   ├── capture/           # Captura de pantalla
+│   ├── capture/           # Screen capture
 │   │   ├── capture_manager.py
 │   │   ├── bitblt_capture.py
 │   │   └── mss_capture.py
-│   ├── input/             # Entrada de mouse
+│   ├── input/             # Mouse input
 │   │   ├── mouse_manager.py
 │   │   ├── ddxoft_mouse.py
 │   │   └── win32_mouse.py
-│   ├── config/            # Configuración
+│   ├── config/            # Configuration
 │   │   ├── config_manager.py
 │   │   ├── game_profiles.json
 │   │   └── user_config.json
-│   ├── utils/             # Utilidades
+│   ├── utils/             # Utilities
 │   │   ├── logger.py
 │   │   ├── calibration.py
 │   │   └── performance_monitor.py
-│   └── yoloe-11l-seg.pt # Modelo YOLO-World v2
+│   └── yoloe-11l-seg.pt # YOLO-World v2 model
 ├── docs/
-│   └── YOLO_WORLD_SETUP.md # Guía del modelo
-├── logs/                  # Archivos de log
-├── lunar.py               # Punto de entrada principal
-├── download_yolov8_world.bat # Descarga del modelo
-└── start.bat              # Script de inicio
+│   └── YOLO_WORLD_SETUP.md # Model guide
+├── logs/                  # Log files
+├── lunar.py               # Main entry point
+├── download_yolov8_world.bat # Model download
+└── start.bat              # Startup script
 ```
 
 ---
 
-## 🎯 Características Avanzadas
+## 🎯 Advanced Features
 
-### Humanización de Movimientos
+### Movement Humanization
 
-El motor de movimiento incluye:
-- **Curvas Bézier**: Trayectorias curvas naturales
-- **Ruido Gaussiano**: Imperfección humana simulada
-- **Overshoot Aleatorio**: Pasarse ligeramente del objetivo
-- **Aceleración/Desaceleración**: Velocidad variable según distancia
+The movement engine includes:
+- **Bézier Curves**: Natural curved trajectories
+- **Gaussian Noise**: Simulated human imperfection
+- **Random Overshoot**: Slightly overshooting the target
+- **Acceleration/Deceleration**: Variable speed based on distance
 
 ### Target Stickiness
 
-Reduce cambios erráticos entre objetivos:
-- Mantiene el target actual si sigue visible
-- Tolerancia de distancia configurable
-- Persistencia por varios frames
+Reduces erratic changes between targets:
+- Maintains current target if still visible
+- Configurable distance tolerance
+- Persistence across multiple frames
 
 ### Auto-Fallback
 
-El sistema detecta y cambia automáticamente:
-- Si BitBlt falla → cambia a MSS
-- Si DDXoft falla → cambia a Win32
-- Notificaciones en consola de cada cambio
+The system automatically detects and switches:
+- If BitBlt fails → switches to MSS
+- If DDXoft fails → switches to Win32
+- Console notifications for each change
 
 ---
 
-## 📊 Monitoreo de Rendimiento
+## 📊 Performance Monitoring
 
-### Ver Estadísticas en Vivo
+### View Live Statistics
 
-Presiona **F3** durante la ejecución para ver:
-- FPS actual, promedio, mín, máx
-- Tiempo de frame
-- Uso de CPU y memoria
-- Total de detecciones
-- Total de frames procesados
+Press **F3** during execution to see:
+- Current, average, min, max FPS
+- Frame time
+- CPU and memory usage
+- Total detections
+- Total frames processed
 
-### Logs Detallados
+### Detailed Logs
 
-Los logs se guardan en `logs/` con:
-- Timestamp de cada evento
-- Categoría (ENGINE, CAPTURE, MOUSE, etc.)
-- Nivel (DEBUG, INFO, WARNING, ERROR)
-- Archivos rotados por sesión
+Logs are saved in `logs/` with:
+- Timestamp for each event
+- Category (ENGINE, CAPTURE, MOUSE, etc.)
+- Level (DEBUG, INFO, WARNING, ERROR)
+- Session-rotated files
 
 ---
 
-## 🔒 Seguridad y Responsabilidad
+## 🔒 Security and Responsibility
 
 ⚠️ **DISCLAIMER:**
 
-Este proyecto es para **propósitos educativos** y pruebas en **entornos propios**.
+This project is intended for **educational purposes** and for testing in **private, controlled environments only**.
 
-- ❌ **NO** usar en juegos online
-- ❌ **NO** usar para hacer trampas
-- ✅ **SÍ** usar para aprender IA y detección de objetos
-- ✅ **SÍ** usar para probar sistemas anti-cheat propios
+- ✅ **USE** to learn about AI, computer vision, and object detection.
+- ✅ **USE** to test and develop your own detection mitigation systems.
+- ❌ **DO NOT** use this software in public online multiplayer games.
+- ❌ **DO NOT** use this software to gain an unfair advantage over other players.
 
-El uso indebido puede resultar en:
-- Baneos permanentes
-- Consecuencias legales
-- Daño a la comunidad de jugadores
+Misuse of this software can lead to:
+- Permanent account suspensions from online services.
+- Damage to online gaming communities.
+- Other potential consequences.
 
-**Usa este código de forma responsable.**
+**The user assumes all responsibility for their actions. Use this code responsibly.**
 
 ---
 
-## 💬 Soporte y Comunidad
+## 💬 Support and Community
 
 ### Discord
-👉 [discord.gg/aiprogram_t](https://discord.gg/aiprogram_t)
+👉 [Join our Discord Community](https://discord.gg/aiprogram_t)
 
-### Versión Premium (Lunar V2)
+### Premium Version (Lunar V2)
 
-La versión completa incluye:
-- ✅ 25+ configuraciones personalizables
-- ✅ Interfaz gráfica integrada
-- ✅ Soporte YOLOv8, v10, v12 y TensorRT
-- ✅ Soporte para control Xbox
-- ✅ Input Logitech GHUB
-- ✅ Compatible AMD y NVIDIA
+The full version includes:
+- ✅ 25+ customizable settings
+- ✅ Integrated graphical interface
+- ✅ Support for YOLOv8, v10, v12 and TensorRT
+- ✅ Xbox controller support
+- ✅ Logitech GHUB input
+- ✅ AMD and NVIDIA compatible
 
-[Descargar Lunar V2](https://gannonr.com/lunar)
-
----
-
-## 📝 Licencia
-
-Este proyecto está bajo licencia MIT. Ver `LICENSE` para más detalles.
+[Download Lunar V2](https://gannonr.com/lunar)
 
 ---
 
-## 🙏 Créditos
+## 📝 License
 
-- Proyecto original: [Lunar by zeyad-mansour](https://github.com/zeyad-mansour/lunar)
-- Modelo YOLO: [Ultralytics](https://github.com/ultralytics/ultralytics)
-- Comunidad de Discord
+This project is under MIT license. See `LICENSE` for details.
+
+---
+
+## 🙏 Credits
+
+- Original project: [Lunar by zeyad-mansour](https://github.com/zeyad-mansour/lunar)
+- YOLO model: [Ultralytics](https://github.com/ultralytics/ultralytics)
+- Discord community
 
 ---
 
 ## 📈 Changelog
 
 ### v2.0.0 (2024)
-- ✨ Arquitectura completamente reescrita
-- ✨ Soporte multi-juego con perfiles
-- ✨ Sistema de calibración automática
-- ✨ Motor de humanización avanzado
-- ✨ Logging y monitoreo mejorados
-- ✨ Auto-fallback para captura y mouse
-- ✨ Target stickiness y deadzone
-- ✨ Performance monitor en tiempo real
+- ✨ Completely rewritten architecture
+- ✨ Multi-game support with profiles
+- ✨ Automatic calibration system
+- ✨ Advanced humanization engine
+- ✨ Improved logging and monitoring
+- ✨ Auto-fallback for capture and mouse
+- ✨ Target stickiness and deadzone
+- ✨ Real-time performance monitor
 
 ### v1.0.0
-- 🎯 Versión original con YOLOv8/v12
-- 🎯 Soporte básico para Fortnite
-- 🎯 Captura MSS y mouse Win32
+- 🎯 Original version with YOLOv8/v12
+- 🎯 Basic Fortnite support
+- 🎯 MSS capture and Win32 mouse
 
 ---
 
-**¡Disfruta del proyecto y úsalo de forma responsable! 🎮🤖**
+**Enjoy the project and use it responsibly! 🎮🤖**

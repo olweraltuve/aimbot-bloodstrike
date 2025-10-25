@@ -5,10 +5,10 @@ Herramienta de calibración para diferentes juegos.
 """
 
 import json
-import time
 from pathlib import Path
 from termcolor import colored
 from lib.utils.logger import logger
+from lib.config.config_manager import config
 
 class CalibrationWizard:
     """Asistente de calibración para juegos"""
@@ -43,8 +43,6 @@ class CalibrationWizard:
     
     def _select_game(self) -> str:
         """Selecciona el perfil del juego"""
-        from lib.config.config_manager import config
-        
         profiles = config.list_profiles()
         
         print(colored("Available game profiles:", "yellow"))
@@ -86,24 +84,15 @@ class CalibrationWizard:
         xy_sens = get_float("Enter X/Y sensitivity (from in-game settings): ")
         targeting_sens = get_float("Enter targeting/ADS sensitivity (from in-game settings): ")
         
-        # Calcular escalas
-        xy_scale = 10.0 / xy_sens
-        targeting_scale = 1000.0 / (targeting_sens * xy_sens)
-        
-        # Guardar en config.json
-        config_data = {
-            "xy_sens": xy_sens,
-            "targeting_sens": targeting_sens,
-            "xy_scale": xy_scale,
-            "targeting_scale": targeting_scale,
-            "_comment": "Sensitivity calibration settings"
-        }
-        
-        config_path = Path("lib/config/config.json")
-        with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(config_data, f, indent=4)
+        # Guardar en user_config.json usando config_manager
+        config.set_user_setting('sensitivity', {
+            'xy_sens': xy_sens,
+            'targeting_sens': targeting_sens,
+            'comment': 'These settings are not used by default but can be integrated for advanced scaling.'
+        })
         
         print(colored("✓ Sensitivity calibrated and saved!", "green"))
+        logger.info(f"Sensitivity settings saved: xy_sens={xy_sens}, targeting_sens={targeting_sens}", "CALIBRATION")
     
     def _select_capture_method(self) -> str:
         """Selecciona el método de captura"""
@@ -151,8 +140,6 @@ class CalibrationWizard:
     
     def _save_config(self, profile: str, capture: str, mouse: str):
         """Guarda la configuración del usuario"""
-        from lib.config.config_manager import config
-        
         config.set_user_setting('active_profile', profile)
         config.set_user_setting('capture_method', capture)
         config.set_user_setting('mouse_method', mouse)
